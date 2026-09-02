@@ -7,10 +7,16 @@ const isProtectedRoute = createRouteMatcher([
   '/friends/:path*',
   '/settings/:path*',
   '/onboarding/:path*',
-  '/api/:path*',
+])
+
+// Webhook + cron routes bypass Clerk auth (use their own secret verification)
+const isPublicApiRoute = createRouteMatcher([
+  '/api/webhooks/:path*',
+  '/api/cron/:path*',
 ])
 
 export default clerkMiddleware(async (auth, req) => {
+  if (isPublicApiRoute(req)) return
   if (isProtectedRoute(req)) {
     await auth.protect()
   }
