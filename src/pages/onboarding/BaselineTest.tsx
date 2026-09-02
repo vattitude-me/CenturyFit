@@ -2,7 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getProfile, saveBaseline, saveProfile } from '../../db';
 import { getTierFromMaxReps, EXERCISE_LABELS } from '../../engine/progression';
+import { PushupIcon, PullupIcon, SquatIcon, InfoIcon, TrophyIcon } from '../../components/icons';
+import type { IconProps } from '../../components/icons';
 import type { Exercise, UserProfile, Baseline } from '../../types';
+
+const EXERCISE_ICONS: Record<Exercise, (props: IconProps) => React.ReactNode> = {
+  pushups: PushupIcon,
+  pullups: PullupIcon,
+  squats: SquatIcon,
+};
 
 export default function BaselineTest() {
   const navigate = useNavigate();
@@ -66,6 +74,8 @@ export default function BaselineTest() {
     </div>;
   }
 
+  const CurrentIcon = EXERCISE_ICONS[currentExercise];
+
   if (testing && !finished) {
     return (
       <div className="flex flex-col items-center justify-between min-h-full px-6 py-12 bg-bg-primary">
@@ -73,7 +83,9 @@ export default function BaselineTest() {
           {EXERCISE_LABELS[currentExercise]} Test
         </div>
         <div className="flex flex-col items-center gap-4">
-          <p className="text-text-secondary text-sm">Do as many pushups as you can in 1 set.</p>
+          <p className="text-text-secondary text-sm">
+            Do as many {EXERCISE_LABELS[currentExercise].toLowerCase()} as you can in 1 set.
+          </p>
           <div className="text-8xl font-bold text-purple-accent tabular-nums">{reps}</div>
           <p className="text-2xl text-text-secondary">REPS</p>
           <p className="text-text-muted text-sm">Keep going!</p>
@@ -100,7 +112,7 @@ export default function BaselineTest() {
             </button>
           </div>
           <div className="flex items-center gap-2 text-text-muted text-xs justify-center mt-2">
-            <span>💡</span>
+            <InfoIcon size={16} />
             <span>Full range of motion. Quality over speed.</span>
           </div>
         </div>
@@ -111,7 +123,7 @@ export default function BaselineTest() {
   if (finished) {
     return (
       <div className="flex flex-col items-center justify-center min-h-full px-6 py-12 bg-bg-primary gap-6">
-        <div className="text-6xl">🎉</div>
+        <TrophyIcon size={64} />
         <h2 className="text-2xl font-bold">{reps} {EXERCISE_LABELS[currentExercise]}!</h2>
         <p className="text-text-secondary">Great effort! We'll build your plan from here.</p>
         <button
@@ -130,6 +142,9 @@ export default function BaselineTest() {
         Test {currentIndex + 1} of {exercises.length}
       </div>
       <div className="flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-bg-card flex items-center justify-center mb-2">
+          <CurrentIcon size={36} />
+        </div>
         <h1 className="text-2xl font-bold">{EXERCISE_LABELS[currentExercise]} Test</h1>
         <p className="text-text-secondary text-center max-w-xs">
           Do as many {EXERCISE_LABELS[currentExercise].toLowerCase()} as you can in 1 set.

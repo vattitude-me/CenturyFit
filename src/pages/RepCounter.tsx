@@ -3,11 +3,52 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getDailyPlans, saveDailyPlan, saveSetLog, getSettings } from '../db';
 import { EXERCISE_LABELS } from '../engine/progression';
 import { playClick, playComplete, speakNumber, vibrate, requestWakeLock, releaseWakeLock } from '../engine/audio';
+import {
+  MinusIcon, PlusIcon, PauseIcon, PlayIcon, VolumeIcon, MuteIcon, VibrationIcon,
+  ChevronLeftIcon, SettingsIcon, StopIcon, CheckIcon, FlameIcon,
+} from '../components/icons';
 import type { Exercise, DailyPlan, CountMode } from '../types';
-import { Minus, Plus, Pause, Play, Volume2, Smartphone, ChevronLeft } from 'lucide-react';
 
 function getToday(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+const CONFETTI_COLORS = ['#7C3AED', '#F97316', '#22C55E', '#EAB308', '#EC4899', '#3B82F6'];
+
+function Confetti() {
+  const pieces = Array.from({ length: 24 }, (_, i) => {
+    const angle = (i / 24) * 360 + Math.random() * 12;
+    const distance = 90 + Math.random() * 70;
+    const dx = Math.cos((angle * Math.PI) / 180) * distance;
+    const dy = Math.sin((angle * Math.PI) / 180) * distance;
+    const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    const delay = Math.random() * 0.15;
+    return { id: i, dx, dy, color, delay };
+  });
+
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+      {pieces.map(p => (
+        <span
+          key={p.id}
+          className="absolute w-2 h-2 rounded-sm"
+          style={{
+            backgroundColor: p.color,
+            animation: `confetti-burst 0.9s ease-out ${p.delay}s forwards`,
+            // @ts-expect-error custom properties for the keyframe
+            '--dx': `${p.dx}px`,
+            '--dy': `${p.dy}px`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes confetti-burst {
+          0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+          100% { transform: translate(var(--dx), var(--dy)) rotate(200deg); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
 }
 
 export default function RepCounter() {
@@ -142,13 +183,16 @@ export default function RepCounter() {
 
   if (setComplete) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-full px-6 py-12 bg-bg-primary animate-fade-in">
-        <div className="w-20 h-20 rounded-full bg-green-accent/20 flex items-center justify-center mb-6">
-          <span className="text-green-accent text-4xl">✓</span>
+      <div className="relative flex flex-col items-center justify-center min-h-full px-6 py-12 bg-bg-primary animate-fade-in overflow-hidden">
+        <Confetti />
+        <div className="relative w-20 h-20 flex items-center justify-center mb-6">
+          <CheckIcon size={80} />
         </div>
         <h1 className="text-2xl font-bold mb-2">Set Complete!</h1>
         <p className="text-text-secondary mb-2">You did {reps} reps</p>
-        <p className="text-2xl mb-8">🔥 Great work!</p>
+        <p className="relative flex items-center gap-2 text-text-secondary text-lg mb-8">
+          <FlameIcon size={22} /> Great work!
+        </p>
         <div className="w-full max-w-sm flex flex-col gap-3">
           <button
             onClick={handleEndSet}
@@ -176,7 +220,7 @@ export default function RepCounter() {
       <div className="flex flex-col min-h-full px-6 py-8 bg-bg-primary animate-fade-in">
         <div className="flex items-center gap-3 mb-8">
           <button onClick={() => setShowSettings(false)} className="text-text-secondary">
-            <ChevronLeft size={24} />
+            <ChevronLeftIcon size={24} />
           </button>
           <h1 className="text-xl font-bold">Counter Settings</h1>
         </div>
@@ -221,13 +265,13 @@ export default function RepCounter() {
 
         <div className="flex flex-col gap-4">
           {[
-            { label: 'Sound', value: soundOn, set: setSoundOn, icon: Volume2 },
-            { label: 'Voice Cues', value: voiceOn, set: setVoiceOn, icon: Volume2 },
-            { label: 'Vibration', value: vibrationOn, set: setVibrationOn, icon: Smartphone },
+            { label: 'Sound', value: soundOn, set: setSoundOn, icon: VolumeIcon },
+            { label: 'Voice Cues', value: voiceOn, set: setVoiceOn, icon: VolumeIcon },
+            { label: 'Vibration', value: vibrationOn, set: setVibrationOn, icon: VibrationIcon },
           ].map(({ label, value, set, icon: Icon }) => (
             <div key={label} className="flex items-center justify-between p-4 rounded-xl bg-bg-card">
               <div className="flex items-center gap-3">
-                <Icon size={18} className="text-text-muted" />
+                <Icon size={20} />
                 <span>{label}</span>
               </div>
               <button
@@ -255,26 +299,34 @@ export default function RepCounter() {
     );
   }
 
+  const progressPct = Math.min(100, Math.round((reps / Math.max(1, goalReps)) * 100));
+
   return (
     <div className="flex flex-col items-center justify-between min-h-full px-6 py-8 bg-bg-primary" onClick={mode === 'tap' ? handleTap : undefined}>
       {/* Header */}
       <div className="w-full flex items-center justify-between">
         <button onClick={handleBack} className="text-text-secondary">
-          <ChevronLeft size={24} />
+          <ChevronLeftIcon size={24} />
         </button>
         <h2 className="text-lg font-semibold">{EXERCISE_LABELS[exercise as Exercise]}</h2>
-        <button onClick={() => setShowSettings(true)} className="text-text-secondary text-sm">
-          ⚙️
+        <button onClick={(e) => { e.stopPropagation(); setShowSettings(true); }} className="text-text-secondary">
+          <SettingsIcon size={22} />
         </button>
       </div>
 
       {/* Big Counter */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-2 w-full max-w-sm">
         <div className="text-[120px] font-bold leading-none tabular-nums text-text-primary">
           {reps}
         </div>
         <div className="text-2xl text-text-secondary font-medium tracking-wider">REPS</div>
-        <div className="text-text-muted text-sm mt-2">Goal: {goalReps}</div>
+        <div className="text-text-muted text-sm mt-2 mb-3">Goal: {goalReps}</div>
+        <div className="w-full h-2 bg-bg-card rounded-full overflow-hidden">
+          <div
+            className="h-full bg-purple-accent rounded-full transition-all duration-300"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
       </div>
 
       {/* Controls */}
@@ -306,7 +358,7 @@ export default function RepCounter() {
             onClick={(e) => { e.stopPropagation(); setReps(Math.max(0, reps - 1)); }}
             className="w-14 h-14 rounded-full bg-bg-card border-2 border-border flex items-center justify-center active:bg-bg-card-hover"
           >
-            <Minus size={24} className="text-text-secondary" />
+            <MinusIcon size={22} />
           </button>
 
           {mode === 'metronome' ? (
@@ -314,7 +366,7 @@ export default function RepCounter() {
               onClick={(e) => { e.stopPropagation(); toggleRunning(); }}
               className="w-20 h-20 rounded-full bg-purple-accent flex items-center justify-center animate-pulse-glow"
             >
-              {isRunning ? <Pause size={32} className="text-white" /> : <Play size={32} className="text-white ml-1" />}
+              {isRunning ? <PauseIcon size={40} /> : <PlayIcon size={40} />}
             </button>
           ) : (
             <div className="w-20 h-20 rounded-full bg-purple-accent/20 border-4 border-purple-accent flex items-center justify-center">
@@ -326,27 +378,25 @@ export default function RepCounter() {
             onClick={(e) => { e.stopPropagation(); incrementRep(); }}
             className="w-14 h-14 rounded-full bg-bg-card border-2 border-border flex items-center justify-center active:bg-bg-card-hover"
           >
-            <Plus size={24} className="text-text-secondary" />
+            <PlusIcon size={22} />
           </button>
         </div>
 
         {/* Bottom actions */}
         <div className="flex items-center justify-around">
           <button onClick={(e) => { e.stopPropagation(); setSoundOn(!soundOn); }} className="flex flex-col items-center gap-1">
-            <Volume2 size={20} className={soundOn ? 'text-purple-accent' : 'text-text-muted'} />
+            {soundOn ? <VolumeIcon size={20} /> : <MuteIcon size={20} />}
             <span className="text-[10px] text-text-muted">Sound</span>
           </button>
           <button onClick={(e) => { e.stopPropagation(); setVibrationOn(!vibrationOn); }} className="flex flex-col items-center gap-1">
-            <Smartphone size={20} className={vibrationOn ? 'text-purple-accent' : 'text-text-muted'} />
+            <VibrationIcon size={20} />
             <span className="text-[10px] text-text-muted">Vibrate</span>
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setSetComplete(true); }}
             className="flex flex-col items-center gap-1"
           >
-            <div className="w-5 h-5 rounded border-2 border-orange-accent flex items-center justify-center">
-              <span className="text-orange-accent text-xs">■</span>
-            </div>
+            <StopIcon size={20} />
             <span className="text-[10px] text-text-muted">End Set</span>
           </button>
         </div>

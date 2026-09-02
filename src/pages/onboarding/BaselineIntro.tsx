@@ -2,7 +2,15 @@ import { useNavigate } from 'react-router-dom';
 import { EXERCISE_LABELS } from '../../engine/progression';
 import { getProfile } from '../../db';
 import { useEffect, useState } from 'react';
+import { PushupIcon, PullupIcon, SquatIcon } from '../../components/icons';
+import type { IconProps } from '../../components/icons';
 import type { Exercise } from '../../types';
+
+const EXERCISE_ICONS: Record<Exercise, (props: IconProps) => React.ReactNode> = {
+  pushups: PushupIcon,
+  pullups: PullupIcon,
+  squats: SquatIcon,
+};
 
 export default function BaselineIntro() {
   const navigate = useNavigate();
@@ -13,12 +21,6 @@ export default function BaselineIntro() {
       if (p) setGoals(p.goals);
     });
   }, []);
-
-  const exerciseIcons: Record<Exercise, string> = {
-    pushups: '🏋️',
-    pullups: '🤸',
-    squats: '🦵',
-  };
 
   return (
     <div className="flex flex-col min-h-full px-6 py-8 bg-bg-primary">
@@ -34,18 +36,23 @@ export default function BaselineIntro() {
       </p>
 
       <div className="flex flex-col gap-4 flex-1">
-        {goals.map(exercise => (
-          <div
-            key={exercise}
-            className="flex items-center gap-4 p-5 rounded-2xl bg-bg-card border-2 border-border"
-          >
-            <span className="text-3xl">{exerciseIcons[exercise]}</span>
-            <div>
-              <div className="font-semibold">{EXERCISE_LABELS[exercise]} Test</div>
-              <div className="text-text-secondary text-sm">Max in 1 set</div>
+        {goals.map(exercise => {
+          const ExIcon = EXERCISE_ICONS[exercise];
+          return (
+            <div
+              key={exercise}
+              className="flex items-center gap-4 p-5 rounded-2xl bg-bg-card border-2 border-border"
+            >
+              <div className="w-12 h-12 rounded-xl bg-bg-card-elevated flex items-center justify-center">
+                <ExIcon size={28} />
+              </div>
+              <div>
+                <div className="font-semibold">{EXERCISE_LABELS[exercise]} Test</div>
+                <div className="text-text-secondary text-sm">Max in 1 set</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-3 mt-8">

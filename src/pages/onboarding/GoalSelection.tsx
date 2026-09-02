@@ -1,46 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { CheckIcon, PushupIcon, PullupIcon, SquatIcon } from '../../components/icons';
+import type { IconProps } from '../../components/icons';
 import type { Exercise } from '../../types';
 
-function PushupIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <line x1="2" y1="18" x2="8" y2="18" /><line x1="16" y1="18" x2="22" y2="18" />
-      <line x1="8" y1="18" x2="10" y2="14" /><line x1="16" y1="18" x2="14" y2="14" />
-      <line x1="10" y1="14" x2="14" y2="14" />
-      <circle cx="16" cy="12" r="2" />
-    </svg>
-  );
-}
-
-function PullupIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <line x1="2" y1="4" x2="22" y2="4" />
-      <line x1="8" y1="4" x2="8" y2="8" /><line x1="16" y1="4" x2="16" y2="8" />
-      <circle cx="12" cy="10" r="2" />
-      <line x1="12" y1="12" x2="12" y2="18" />
-      <line x1="12" y1="18" x2="9" y2="22" /><line x1="12" y1="18" x2="15" y2="22" />
-    </svg>
-  );
-}
-
-function SquatIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <circle cx="12" cy="4" r="2" />
-      <path d="M12 6 L12 12 L8 18 L6 18" />
-      <path d="M12 12 L16 18 L18 18" />
-      <path d="M12 10 L8 8" /><path d="M12 10 L16 8" />
-    </svg>
-  );
-}
-
-const EXERCISES: { id: Exercise; label: string; desc: string; color: string; icon: () => React.ReactNode }[] = [
-  { id: 'pushups', label: 'Pushups', desc: '100 every day', color: 'bg-orange-accent', icon: PushupIcon },
-  { id: 'pullups', label: 'Pullups', desc: '100 every day', color: 'bg-green-accent', icon: PullupIcon },
-  { id: 'squats', label: 'Squats', desc: '100 every day', color: 'bg-purple-accent', icon: SquatIcon },
+const EXERCISES: { id: Exercise; label: string; desc: string; icon: (props: IconProps) => React.ReactNode }[] = [
+  { id: 'pushups', label: 'Pushups', desc: '100 every day', icon: PushupIcon },
+  { id: 'pullups', label: 'Pullups', desc: '100 every day', icon: PullupIcon },
+  { id: 'squats', label: 'Squats', desc: '100 every day', icon: SquatIcon },
 ];
 
 export default function GoalSelection() {
@@ -73,7 +40,7 @@ export default function GoalSelection() {
       <p className="text-text-secondary text-sm mb-8">You can focus on one or all.</p>
 
       <div className="flex flex-col gap-4 flex-1">
-        {EXERCISES.map(({ id, label, desc, color, icon: ExIcon }) => {
+        {EXERCISES.map(({ id, label, desc, icon: ExIcon }) => {
           const active = selected.has(id);
           return (
             <button
@@ -85,18 +52,14 @@ export default function GoalSelection() {
                   : 'border-border bg-bg-card hover:bg-bg-card-hover'
               }`}
             >
-              <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center text-white`}>
-                <ExIcon />
+              <div className="w-12 h-12 rounded-xl bg-bg-card-elevated flex items-center justify-center">
+                <ExIcon size={28} />
               </div>
               <div className="flex-1 text-left">
                 <div className="font-semibold text-lg">{label}</div>
                 <div className="text-text-secondary text-sm">{desc}</div>
               </div>
-              {active && (
-                <div className="w-6 h-6 rounded-full bg-purple-accent flex items-center justify-center">
-                  <Check size={14} className="text-white" />
-                </div>
-              )}
+              {active && <CheckIcon size={24} />}
             </button>
           );
         })}

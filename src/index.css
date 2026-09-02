@@ -5,6 +5,7 @@
   --color-bg-secondary: #1A1128;
   --color-bg-card: #231A33;
   --color-bg-card-hover: #2D2240;
+  --color-bg-card-elevated: #2A2039;
   --color-purple-accent: #7C3AED;
   --color-purple-light: #A78BFA;
   --color-purple-dark: #5B21B6;
@@ -13,6 +14,8 @@
   --color-green-light: #4ADE80;
   --color-red-accent: #EF4444;
   --color-yellow-accent: #EAB308;
+  --color-blue-accent: #3B82F6;
+  --color-pink-accent: #EC4899;
   --color-text-primary: #F8FAFC;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;

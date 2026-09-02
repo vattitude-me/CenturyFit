@@ -100,3 +100,36 @@ export interface AppSettings {
   defaultCountMode: CountMode;
   defaultRestTime: number;
 }
+
+export interface Friend {
+  id: string;
+  name: string;
+  username: string;
+  points: number;
+  streak: number;
+  status: 'accepted' | 'pending';
+  lastActivityText: string;
+  lastActivityAt: number;
+}
+
+export interface Challenge {
+  id: string;
+  name: string;
+  description: string;
+  exercise: Exercise | 'all';
+  goal: number;
+  progress: number;
+  unit: string;
+  status: 'active' | 'completed';
+}
+
+export type NotificationType = 'nudge' | 'reminder' | 'milestone' | 'challenge';
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  createdAt: number;
+  read: boolean;
+}

@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { getAllDayRecords, getStreak, getSetLogs, getDailyPlans } from '../db';
 import { EXERCISE_LABELS } from '../engine/progression';
+import { FlameIcon, TargetIcon, TrendingUpIcon, TrophyIcon, ChevronLeftIcon, ChevronRightIcon } from '../components/icons';
 import type { DayRecord, StreakData, Exercise } from '../types';
-import { Flame, Target, TrendingUp } from 'lucide-react';
+
+const EXERCISE_COLORS: Record<Exercise, string> = {
+  pushups: '#F97316',
+  pullups: '#22C55E',
+  squats: '#A78BFA',
+};
 
 function getToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -35,11 +41,17 @@ function getMonthCalendar(): { date: string; dayNum: number }[] {
   return dates;
 }
 
+interface DayBar {
+  date: string;
+  label: string;
+  reps: Record<Exercise, number>;
+}
+
 export default function Progress() {
   const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0, freezesRemaining: 3, lastActiveDate: '' });
   const [dayRecords, setDayRecords] = useState<DayRecord[]>([]);
   const [weekStats, setWeekStats] = useState<{ totalReps: number; completionRate: number; personalBests: number }>({ totalReps: 0, completionRate: 0, personalBests: 0 });
-  const [todayReps, setTodayReps] = useState<Record<Exercise, number>>({ pushups: 0, pullups: 0, squats: 0 });
+  const [weekBars, setWeekBars] = useState<DayBar[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -48,25 +60,28 @@ export default function Progress() {
       const records = await getAllDayRecords();
       setDayRecords(records);
 
-      const today = getToday();
-      const plans = await getDailyPlans(today);
-      const reps: Record<Exercise, number> = { pushups: 0, pullups: 0, squats: 0 };
-      plans.forEach(p => { reps[p.exercise] = p.completedReps; });
-      setTodayReps(reps);
-
       const weekDates = getWeekDates();
+      const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
       let totalReps = 0;
       let daysWithGoals = 0;
       let daysComplete = 0;
-      for (const date of weekDates) {
+      const bars: DayBar[] = [];
+
+      for (let i = 0; i < weekDates.length; i++) {
+        const date = weekDates[i];
         const logs = await getSetLogs(date);
-        totalReps += logs.reduce((s, l) => s + l.reps, 0);
+        const reps: Record<Exercise, number> = { pushups: 0, pullups: 0, squats: 0 };
+        for (const log of logs) reps[log.exercise] += log.reps;
+        totalReps += logs.reduce((sum, l) => sum + l.reps, 0);
+        bars.push({ date, label: dayLabels[i], reps });
+
         const dayPlans = await getDailyPlans(date);
         if (dayPlans.length > 0) {
           daysWithGoals++;
           if (dayPlans.every(p => p.completedReps >= p.targetReps)) daysComplete++;
         }
       }
+      setWeekBars(bars);
       setWeekStats({
         totalReps,
         completionRate: daysWithGoals > 0 ? Math.round((daysComplete / daysWithGoals) * 100) : 0,
@@ -82,60 +97,94 @@ export default function Progress() {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const currentMonth = monthNames[new Date().getMonth()];
   const currentYear = new Date().getFullYear();
+  const maxBarValue = Math.max(30, ...weekBars.map(b => Math.max(b.reps.pushups, b.reps.pullups, b.reps.squats)));
 
   return (
     <div className="px-5 py-6 animate-fade-in">
-      <h1 className="text-2xl font-bold mb-6">Progress</h1>
-
-      {/* Streak Card */}
-      <div className="p-6 rounded-2xl bg-bg-card border-2 border-border mb-6 text-center">
-        <Flame size={32} className="text-orange-accent mx-auto mb-2" />
-        <div className="text-4xl font-bold mb-1">{streak.current}</div>
-        <div className="text-text-secondary text-sm">Day Streak</div>
-        <div className="text-text-muted text-xs mt-1">Best: {streak.longest} days</div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Progress</h1>
+        <span className="text-xs text-text-secondary bg-bg-card px-3 py-1.5 rounded-full">This Week</span>
       </div>
 
-      {/* Week Stats */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="p-4 rounded-xl bg-bg-card text-center">
-          <Target size={18} className="text-green-accent mx-auto mb-1" />
+          <TargetIcon size={20} className="mx-auto mb-1" />
           <div className="text-lg font-bold">{weekStats.completionRate}%</div>
           <div className="text-text-muted text-[10px]">Completion</div>
         </div>
         <div className="p-4 rounded-xl bg-bg-card text-center">
-          <Flame size={18} className="text-orange-accent mx-auto mb-1" />
+          <FlameIcon size={20} className="mx-auto mb-1" />
           <div className="text-lg font-bold">{streak.current}</div>
           <div className="text-text-muted text-[10px]">Day Streak</div>
         </div>
         <div className="p-4 rounded-xl bg-bg-card text-center">
-          <TrendingUp size={18} className="text-purple-light mx-auto mb-1" />
+          <TrendingUpIcon size={20} className="mx-auto mb-1" />
           <div className="text-lg font-bold">{weekStats.totalReps}</div>
           <div className="text-text-muted text-[10px]">Total Reps</div>
         </div>
       </div>
 
-      {/* Today's Breakdown */}
-      <h2 className="text-lg font-semibold mb-3">Today's Breakdown</h2>
-      <div className="flex flex-col gap-2 mb-6">
-        {(Object.keys(todayReps) as Exercise[]).map(ex => (
-          <div key={ex} className="flex items-center gap-3 p-3 rounded-xl bg-bg-card">
-            <span className="text-sm font-medium w-20">{EXERCISE_LABELS[ex]}</span>
-            <div className="flex-1 h-2 bg-bg-primary rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${Math.min(100, (todayReps[ex] / 100) * 100)}%`,
-                  backgroundColor: ex === 'pushups' ? '#F97316' : ex === 'pullups' ? '#22C55E' : '#A78BFA',
-                }}
-              />
+      {/* Weekly grouped bar chart */}
+      <h2 className="text-lg font-semibold mb-3">Weekly Volume</h2>
+      <div className="rounded-2xl bg-bg-card p-4 mb-6">
+        <div className="flex items-end justify-between gap-2 h-32 mb-2">
+          {weekBars.map(bar => (
+            <div key={bar.date} className="flex-1 flex items-end justify-center gap-0.5 h-full">
+              {(['pushups', 'pullups', 'squats'] as Exercise[]).map(ex => (
+                <div
+                  key={ex}
+                  className="flex-1 rounded-t-sm transition-all duration-500"
+                  style={{
+                    height: `${Math.max(2, (bar.reps[ex] / maxBarValue) * 100)}%`,
+                    backgroundColor: EXERCISE_COLORS[ex],
+                    opacity: bar.date === today ? 1 : 0.75,
+                  }}
+                />
+              ))}
             </div>
-            <span className="text-xs text-text-muted w-16 text-right">{todayReps[ex]} / 100</span>
+          ))}
+        </div>
+        <div className="flex justify-between">
+          {weekBars.map(bar => (
+            <span key={bar.date} className={`flex-1 text-center text-[10px] ${bar.date === today ? 'text-purple-light font-semibold' : 'text-text-muted'}`}>
+              {bar.label}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-4 mt-4">
+          {(['pushups', 'pullups', 'squats'] as Exercise[]).map(ex => (
+            <div key={ex} className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: EXERCISE_COLORS[ex] }} />
+              <span className="text-[10px] text-text-muted">{EXERCISE_LABELS[ex]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Streak card */}
+      <div className="flex items-center gap-4 p-5 rounded-2xl bg-bg-card border-2 border-border mb-6">
+        <FlameIcon size={40} />
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold">{streak.current}</span>
+            <span className="text-text-secondary text-sm">Day Streak</span>
           </div>
-        ))}
+          <div className="flex items-center gap-1.5 text-text-muted text-xs mt-1">
+            <TrophyIcon size={14} />
+            Best: {streak.longest} days
+          </div>
+        </div>
       </div>
 
       {/* Calendar Heatmap */}
-      <h2 className="text-lg font-semibold mb-3">{currentMonth} {currentYear}</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold">{currentMonth} {currentYear}</h2>
+        <div className="flex items-center gap-1 text-text-muted">
+          <ChevronLeftIcon size={16} />
+          <ChevronRightIcon size={16} />
+        </div>
+      </div>
       <div className="rounded-2xl bg-bg-card p-4 mb-6">
         <div className="grid grid-cols-7 gap-2 text-center text-xs text-text-muted mb-2">
           {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
@@ -172,9 +221,10 @@ export default function Progress() {
             return [...blanks, ...days];
           })()}
         </div>
-        <p className="text-center text-text-muted text-xs mt-4">
-          Don't break the chain! You've got this! 💪
-        </p>
+        <div className="flex items-center justify-center gap-2 text-text-muted text-xs mt-4">
+          <FlameIcon size={16} />
+          <span>Don't break the chain! You've got this!</span>
+        </div>
       </div>
     </div>
   );

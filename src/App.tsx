@@ -1,12 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getProfile } from './db';
+import { getProfile, seedSocialDataIfEmpty } from './db';
 import type { UserProfile } from './types';
 import Layout from './components/Layout';
 import Welcome from './pages/onboarding/Welcome';
 import GoalSelection from './pages/onboarding/GoalSelection';
 import Availability from './pages/onboarding/Availability';
-import Equipment from './pages/onboarding/Equipment';
 import BaselineIntro from './pages/onboarding/BaselineIntro';
 import BaselineTest from './pages/onboarding/BaselineTest';
 import PlanSummary from './pages/onboarding/PlanSummary';
@@ -14,12 +13,19 @@ import Today from './pages/Today';
 import RepCounter from './pages/RepCounter';
 import Progress from './pages/Progress';
 import Settings from './pages/Settings';
+import Friends from './pages/social/Friends';
+import Leaderboard from './pages/social/Leaderboard';
+import Challenges from './pages/social/Challenges';
+import AddFriends from './pages/social/AddFriends';
+import NudgeFriend from './pages/social/NudgeFriend';
+import Notifications from './pages/social/Notifications';
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
 
   useEffect(() => {
     getProfile().then(p => setProfile(p ?? null));
+    seedSocialDataIfEmpty();
   }, []);
 
   if (profile === undefined) {
@@ -38,11 +44,16 @@ export default function App() {
       <Route path="/onboarding/welcome" element={<Welcome />} />
       <Route path="/onboarding/goals" element={<GoalSelection />} />
       <Route path="/onboarding/availability" element={<Availability />} />
-      <Route path="/onboarding/equipment" element={<Equipment />} />
       <Route path="/onboarding/baseline-intro" element={<BaselineIntro />} />
       <Route path="/onboarding/baseline-test" element={<BaselineTest />} />
       <Route path="/onboarding/plan-summary" element={<PlanSummary />} />
       <Route path="/counter/:exercise/:blockId" element={<RepCounter />} />
+      <Route path="/friends" element={<Friends />} />
+      <Route path="/friends/add" element={<AddFriends />} />
+      <Route path="/friends/:id/nudge" element={<NudgeFriend />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/challenges" element={<Challenges />} />
+      <Route path="/notifications" element={<Notifications />} />
       <Route element={<Layout />}>
         <Route path="/today" element={<Today />} />
         <Route path="/plan" element={<Today />} />

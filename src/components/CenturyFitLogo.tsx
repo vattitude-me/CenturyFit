@@ -1,66 +1,48 @@
+import { useId } from 'react';
+
 interface LogoProps {
   size?: number;
   className?: string;
 }
 
 export default function CenturyFitLogo({ size = 64, className = '' }: LogoProps) {
+  const rawId = useId().replace(/[:]/g, '');
+  const bgId = `logoBg${rawId}`;
+  const orangeId = `logoOrange${rawId}`;
+  const greenId = `logoGreen${rawId}`;
+  const purpleId = `logoPurple${rawId}`;
+
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 512 512"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Running figure - matches CenturyFit brand icon from icon_set */}
-      <g transform="translate(50, 50) scale(0.85)">
-        {/* Head */}
-        <circle cx="8" cy="-35" r="8" fill="#A78BFA" />
-        {/* Body trunk */}
-        <path
-          d="M5 -26 L-2 0"
-          stroke="#A78BFA"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-        {/* Left arm - reaching back */}
-        <path
-          d="M2 -20 L-22 -28 L-30 -18"
-          stroke="#A78BFA"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        {/* Right arm - reaching forward */}
-        <path
-          d="M2 -20 L22 -32 L32 -24"
-          stroke="#A78BFA"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        {/* Left leg - forward stride */}
-        <path
-          d="M-2 0 L-18 20 L-28 32"
-          stroke="#A78BFA"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        {/* Right leg - back stride */}
-        <path
-          d="M-2 0 L14 18 L22 32"
-          stroke="#A78BFA"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </g>
+      <defs>
+        <linearGradient id={bgId} x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#1A1128" />
+          <stop offset="100%" stopColor="#0F0A1A" />
+        </linearGradient>
+        <radialGradient id={orangeId} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#FDBA74" />
+          <stop offset="100%" stopColor="#EA580C" />
+        </radialGradient>
+        <radialGradient id={greenId} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#86EFAC" />
+          <stop offset="100%" stopColor="#16A34A" />
+        </radialGradient>
+        <radialGradient id={purpleId} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#C4B5FD" />
+          <stop offset="100%" stopColor="#7C3AED" />
+        </radialGradient>
+      </defs>
+      <rect width="512" height="512" rx="112" fill={`url(#${bgId})`} />
+      <circle cx="164" cy="304" r="92" fill={`url(#${orangeId})`} />
+      <circle cx="348" cy="304" r="92" fill={`url(#${greenId})`} />
+      <circle cx="256" cy="176" r="92" fill={`url(#${purpleId})`} />
     </svg>
   );
 }

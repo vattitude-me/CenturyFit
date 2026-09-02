@@ -5,10 +5,13 @@ export default function Welcome() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-full px-6 py-12 bg-bg-primary">
+    <div
+      className="flex flex-col items-center justify-between min-h-full px-6 py-12 bg-bg-primary"
+      style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(124,58,237,0.22), transparent 55%)' }}
+    >
       <div />
       <div className="flex flex-col items-center gap-6 animate-fade-in">
-        <CenturyFitLogo size={120} />
+        <CenturyFitLogo size={112} />
         <h1 className="text-4xl font-bold tracking-tight text-center">
           CENTURY<span className="text-purple-accent">FIT</span>
         </h1>
@@ -21,7 +24,7 @@ export default function Welcome() {
       <div className="w-full max-w-sm flex flex-col gap-3">
         <button
           onClick={() => navigate('/onboarding/goals')}
-          className="w-full py-4 bg-purple-accent hover:bg-purple-dark text-white font-semibold rounded-2xl transition-colors text-lg"
+          className="w-full py-4 bg-purple-accent hover:bg-purple-dark text-white font-semibold rounded-2xl transition-colors text-lg shadow-lg shadow-purple-accent/25"
         >
           Get Started
         </button>
