@@ -30,6 +30,8 @@ sw.addEventListener('activate', (event) => {
 });
 sw.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+    // Only handle same-origin requests; let cross-origin (Clerk, Supabase, CDNs) pass through
+    if (url.origin !== self.location.origin) return;
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(fetch(event.request).catch(() => {
             return new Response(JSON.stringify({ error: 'You are currently offline', offline: true }), {
@@ -113,5 +115,4 @@ sw.addEventListener('sync', (event) => {
         }));
     }
 });
-export {};
 //# sourceMappingURL=sw.js.map

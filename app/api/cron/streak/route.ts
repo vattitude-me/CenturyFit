@@ -15,62 +15,46 @@ export async function GET(request: Request) {
   try {
     const supabase = await createServerClient()
 
-    // Get all users with streak records
     const { data: users, error } = await supabase
       .from('streaks')
       .select('user_id, current_streak, longest_streak, last_active_date')
 
     if (error) throw error
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0) // Set to start of today
+    // Use UTC date strings throughout to avoid timezone mismatches
+    const todayStr = new Date().toISOString().split('T')[0] // "YYYY-MM-DD" UTC
+    const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0]
 
-    // Update streaks for each user
-    for (const streak of users) {
-      const lastActive = streak.last_active_date
-        ? new Date(streak.last_active_date)
-        : null
-
+    const updates = users.map((streak) => {
+      const lastActiveStr = streak.last_active_date ?? null
       let newStreak = streak.current_streak || 0
       let newLongest = streak.longest_streak || 0
 
-      if (lastActive) {
-        const yesterday = new Date(today)
-        yesterday.setDate(yesterday.getDate() - 1)
-
-        // Check if last active was yesterday (continue streak)
-        if (lastActive.getTime() === yesterday.getTime()) {
-          // Streak continues
-          newStreak = (streak.current_streak || 0) + 1
-        } else if (lastActive.getTime() < yesterday.getTime()) {
-          // Streak broken (more than 1 day ago)
-          newStreak = 0
-        }
-        // If lastActive is today, streak remains the same (already counted)
-      } else {
-        // No last active date, starting fresh
+      if (lastActiveStr === yesterdayStr) {
+        newStreak = newStreak + 1
+      } else if (lastActiveStr !== todayStr) {
+        // More than one day ago (or null): reset streak but do NOT update last_active_date
+        // so the next cron doesn't see this user as "active yesterday"
         newStreak = 0
       }
+      // If lastActiveStr === todayStr the user already logged today; leave streak unchanged
 
-      // Update longest streak if current is greater
-      if (newStreak > newLongest) {
-        newLongest = newStreak
+      if (newStreak > newLongest) newLongest = newStreak
+
+      return {
+        user_id: streak.user_id,
+        current_streak: newStreak,
+        longest_streak: newLongest,
+        // Only advance last_active_date when the streak actually progressed
+        ...(lastActiveStr === yesterdayStr ? { last_active_date: todayStr } : {}),
       }
+    })
 
-      // Update the streak record
-      const { error: updateError } = await supabase
-        .from('streaks')
-        .update({
-          current_streak: newStreak,
-          longest_streak: newLongest,
-          last_active_date: today.toISOString().split('T')[0] // Store as date string
-        })
-        .eq('user_id', streak.user_id)
+    const { error: upsertError } = await supabase
+      .from('streaks')
+      .upsert(updates, { onConflict: 'user_id' })
 
-      if (updateError) {
-        console.error(`Error updating streak for user ${streak.user_id}:`, updateError)
-      }
-    }
+    if (upsertError) throw upsertError
 
     return new NextResponse('Streak cron job completed', { status: 200 })
   } catch (error) {

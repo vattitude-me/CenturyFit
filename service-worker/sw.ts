@@ -51,6 +51,9 @@ sw.addEventListener('activate', (event: ExtendableEvent) => {
 sw.addEventListener('fetch', (event: FetchEvent) => {
   const url = new URL(event.request.url)
 
+  // Only handle same-origin requests; let cross-origin (Clerk, Supabase, CDNs) pass through
+  if (url.origin !== sw.location.origin) return
+
   // API calls: Network first, fallback to offline response if applicable
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(

@@ -24,42 +24,38 @@ export async function GET(request: Request) {
 
     if (error) throw error
 
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
+    // Use UTC hour so quiet-hour checks are consistent regardless of server timezone
+    const currentHour = new Date().getUTCHours()
 
-    // Send nudges to users who have workouts scheduled for the next hour
     for (const user of users) {
-      // Check if user has push subscriptions
       if (!user.push_subscriptions || user.push_subscriptions.length === 0) continue
 
-      // Check quiet hours
-      const prefs = user.push_subscriptions[0]?.notification_prefs
+      // notification_prefs may be an array (one-to-many join) or object; normalise to object
+      const rawPrefs = user.push_subscriptions[0]?.notification_prefs
+      const prefs = Array.isArray(rawPrefs) ? rawPrefs[0] : rawPrefs
       if (prefs) {
-        const quietStart = parseInt(prefs.quiet_hours_start || '22')
-        const quietEnd = parseInt(prefs.quiet_hours_end || '08')
-
-        let isQuiet = false
-        if (quietStart > quietEnd) {
-          // Overnight quiet hours (e.g., 22:00 to 08:00)
-          isQuiet = currentHour >= quietStart || currentHour < quietEnd
-        } else {
-          // Same day quiet hours
-          isQuiet = currentHour >= quietStart && currentHour < quietEnd
-        }
-
+        const quietStart = parseInt(prefs.quiet_hours_start ?? '22', 10)
+        const quietEnd = parseInt(prefs.quiet_hours_end ?? '08', 10)
+        const isQuiet = quietStart > quietEnd
+          ? currentHour >= quietStart || currentHour < quietEnd   // overnight
+          : currentHour >= quietStart && currentHour < quietEnd
         if (isQuiet) continue
       }
 
-      // Send push notification
-      await sendPush(
-        user.push_subscriptions[0],
-        {
-          title: 'Time for your workout!',
-          body: "Don't forget to complete your daily sets",
-          url: '/',
-          type: 'workout_reminder'
-        }
+      const payload = {
+        title: 'Time for your workout!',
+        body: "Don't forget to complete your daily sets",
+        url: '/',
+        type: 'workout_reminder',
+      }
+
+      // Send to every registered device, isolating failures per device
+      await Promise.allSettled(
+        user.push_subscriptions.map((sub: { endpoint: string; keys: object }) =>
+          sendPush(sub, payload).catch((err) =>
+            console.error(`Push failed for user ${user.id} endpoint ${sub.endpoint}:`, err)
+          )
+        )
       )
     }
 
