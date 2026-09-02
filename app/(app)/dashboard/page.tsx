@@ -1,225 +1,113 @@
-import { unstable_cache } from 'next/cache'
-import { createServerClient } from '@/lib/supabase/server'
-import type { Database } from '@/lib/supabase/types'
-import { TodayPlan } from '@/components/dashboard/TodayPlan'
-import { ExerciseProgress } from '@/components/dashboard/ExerciseProgress'
-import { redirect } from 'next/navigation'
+'use client'
 
-interface PlanData {
-  pushupPlan: {
-    completedReps: number
-    targetReps: number
-    sets: Array<{
-      id: string
-      set_number: number
-      target_reps: number
-      is_completed: boolean
-      slot: 'morning' | 'afternoon' | 'evening'
-    }>
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { getGuest } from '@/lib/guest'
+import { getOfflineSets } from '@/lib/offline/idb'
+import { TodayPlan } from '@/components/dashboard/TodayPlan'
+import { useRouter } from 'next/navigation'
+
+const DAILY_TARGET = 100
+
+type ExercisePlan = {
+  completedReps: number
+  targetReps: number
+  sets: Array<{
+    id: string
+    set_number: number
+    target_reps: number
+    is_completed: boolean
+    slot: 'morning' | 'afternoon' | 'evening'
+  }>
+}
+
+type PlanData = {
+  pushupPlan: ExercisePlan
+  pullupPlan: ExercisePlan
+  squatPlan: ExercisePlan
+  streak: { currentStreak: number; longestStreak: number }
+}
+
+function buildGuestPlan(
+  completedReps: Record<'pushup' | 'pullup' | 'squat', number>
+): PlanData {
+  const makePlan = (exercise: 'pushup' | 'pullup' | 'squat'): ExercisePlan => {
+    const done = completedReps[exercise]
+    const sets = [25, 25, 25, 25].map((reps, i) => ({
+      id: `${exercise}-${i + 1}`,
+      set_number: i + 1,
+      target_reps: reps,
+      is_completed: done >= (i + 1) * reps,
+      slot: (['morning', 'morning', 'afternoon', 'evening'] as const)[i],
+    }))
+    return { completedReps: done, targetReps: DAILY_TARGET, sets }
   }
-  pullupPlan: {
-    completedReps: number
-    targetReps: number
-    sets: Array<{
-      id: string
-      set_number: number
-      target_reps: number
-      is_completed: boolean
-      slot: 'morning' | 'afternoon' | 'evening'
-    }>
-  }
-  squatPlan: {
-    completedReps: number
-    targetReps: number
-    sets: Array<{
-      id: string
-      set_number: number
-      target_reps: number
-      is_completed: boolean
-      slot: 'morning' | 'afternoon' | 'evening'
-    }>
-  }
-  streak: {
-    currentStreak: number
-    longestStreak: number
+  return {
+    pushupPlan: makePlan('pushup'),
+    pullupPlan: makePlan('pullup'),
+    squatPlan: makePlan('squat'),
+    streak: { currentStreak: 0, longestStreak: 0 },
   }
 }
 
-// Cache the plan fetch for 1 minute
-const getTodayPlan = unstable_cache(
-  async (userId: string): Promise<PlanData> => {
-    const supabase = await createServerClient()
+export default function DashboardPage() {
+  const { isSignedIn, isLoaded, user } = useUser()
+  const router = useRouter()
+  const [planData, setPlanData] = useState<PlanData | null>(null)
+  const [displayName, setDisplayName] = useState('')
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    if (isSignedIn && user) {
+      setDisplayName(user.firstName || user.username || 'there')
+      // Signed-in: fetch plan from server
+      fetch('/api/plan/today')
+        .then((r) => r.json())
+        .then((data) => setPlanData(data))
+        .catch(() => setPlanData(buildGuestPlan({ pushup: 0, pullup: 0, squat: 0 })))
+      return
+    }
+
+    // Guest: build plan from local IDB completed sets
+    const guest = getGuest()
+    if (!guest) { router.replace('/'); return }
+    setDisplayName(guest.username)
+
     const today = new Date().toISOString().split('T')[0]
-
-    // Get today's plan
-    const { data: planData, error: planError } = await supabase
-      .from('daily_plans')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('plan_date', today)
-      .single()
-
-    if (planError || !planData) {
-      // Return empty plan if none exists for today
-      return {
-        pushupPlan: {
-          completedReps: 0,
-          targetReps: 0,
-          sets: [],
-        },
-        pullupPlan: {
-          completedReps: 0,
-          targetReps: 0,
-          sets: [],
-        },
-        squatPlan: {
-          completedReps: 0,
-          targetReps: 0,
-          sets: [],
-        },
-        streak: {
-          currentStreak: 0,
-          longestStreak: 0,
-        },
-      }
-    }
-
-    const planId = planData.id
-
-    // Get planned sets for today
-    const { data: plannedSets, error: setsError } = await supabase
-      .from('planned_sets')
-      .select('*')
-      .eq('daily_plan_id', planId)
-      .order('slot')
-      .order('set_number')
-
-    // Get completed sets for today
-    const { data: completedSets } = await supabase
-      .from('completed_sets')
-      .select('exercise, reps_completed')
-      .eq('user_id', userId)
-      .eq('log_date', today)
-
-    // Get streak info
-    const { data: streakData } = await supabase
-      .from('streaks')
-      .select('current_streak, longest_streak')
-      .eq('user_id', userId)
-      .single()
-
-    // Calculate completed reps per exercise
-    const completedByExercise: Record<string, number> = {
-      pushup: 0,
-      pullup: 0,
-      squat: 0,
-    }
-    completedSets?.forEach((set: any) => {
-      completedByExercise[set.exercise] =
-        (completedByExercise[set.exercise] || 0) + set.reps_completed
-    })
-
-    // Organize planned sets by exercise
-    const exerciseSets: Record<string, any[]> = {
-      pushup: [],
-      pullup: [],
-      squat: [],
-    }
-
-    plannedSets?.forEach((set: any) => {
-      exerciseSets[set.exercise].push({
-        id: set.id,
-        set_number: set.set_number,
-        target_reps: set.target_reps,
-        is_completed: false, // We'll determine this from completed_sets later
-        slot: set.slot,
+    getOfflineSets().then((sets) => {
+      const todaySets = sets.filter((s) => s.completed_at.startsWith(today))
+      const completedReps = { pushup: 0, pullup: 0, squat: 0 } as Record<'pushup' | 'pullup' | 'squat', number>
+      todaySets.forEach((s) => {
+        if (s.exercise in completedReps) completedReps[s.exercise] += s.reps_completed
       })
+      setPlanData(buildGuestPlan(completedReps))
     })
+  }, [isSignedIn, isLoaded, user, router])
 
-    // Mark sets as completed if we have completion data
-    Object.keys(exerciseSets).forEach((exercise) => {
-      exerciseSets[exercise].forEach((set) => {
-        const exerciseCompleted = completedByExercise[exercise] || 0
-        const setsBeforeThis = exerciseSets[exercise].filter(
-          (s) => s.set_number < set.set_number
-        ).reduce((sum, s) => sum + s.target_reps, 0)
-
-        set.is_completed =
-          exerciseCompleted >= setsBeforeThis + set.target_reps
-      })
-    })
-
-    return {
-      pushupPlan: {
-        completedReps: completedByExercise.pushup || 0,
-        targetReps: exerciseSets.pushup.reduce(
-          (sum, set) => sum + set.target_reps,
-          0
-        ),
-        sets: exerciseSets.pushup,
-      },
-      pullupPlan: {
-        completedReps: completedByExercise.pullup || 0,
-        targetReps: exerciseSets.pullup.reduce(
-          (sum, set) => sum + set.target_reps,
-          0
-        ),
-        sets: exerciseSets.pullup,
-      },
-      squatPlan: {
-        completedReps: completedByExercise.squat || 0,
-        targetReps: exerciseSets.squat.reduce(
-          (sum, set) => sum + set.target_reps,
-          0
-        ),
-        sets: exerciseSets.squat,
-      },
-      streak: {
-        currentStreak: streakData?.current_streak || 0,
-        longestStreak: streakData?.longest_streak || 0,
-      },
-    }
-  },
-  ['today-plan'],
-  {
-    tags: ['today-plan'],
-    revalidate: 60, // 1 minute
+  if (!planData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground text-sm">Loading...</div>
+      </div>
+    )
   }
-)
-
-export default async function DashboardPage() {
-  // Check authentication - redirect to sign-in if not authenticated
-  // In a real implementation, we'd use Clerk auth here
-  // For MVP, we'll check if we have a Supabase session
-
-  // Simulate auth check - in production, use Clerk's auth protection
-  const shouldRedirect = false // Remove this when integrating with Clerk
-
-  if (shouldRedirect) {
-    redirect('/sign-in')
-  }
-
-  // For now, show placeholder data until auth is fully integrated
-  // In production, we'd get the user ID from Clerk/Supabase auth
-  const mockUserId = 'test-user-id'
-
-  const planData = await getTodayPlan(mockUserId)
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-xl mx-auto py-8 px-4">
+        {displayName && (
+          <p className="text-muted-foreground text-sm mb-4">
+            Hey, <span className="text-foreground font-medium">{displayName}</span> 👋
+          </p>
+        )}
         <TodayPlan
           pushupPlan={planData.pushupPlan}
           pullupPlan={planData.pullupPlan}
           squatPlan={planData.squatPlan}
           streak={planData.streak}
           onStartSet={(exercise, setId) => {
-            // Navigate to workout page
-            // In a real app, we'd pass the setId as a query param
-            // For MVP, we'll just show an alert
-            alert(
-              `Starting ${exercise} set ${setId}\n\nIn production, this would navigate to the workout screen.`
-            )
+            router.push(`/workout/${exercise}?setId=${setId}`)
           }}
         />
       </div>

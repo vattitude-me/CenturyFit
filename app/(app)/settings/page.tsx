@@ -1,12 +1,50 @@
-import { auth } from '@clerk/nextjs/server'
-import { UserButton } from '@clerk/nextjs'
+'use client'
 
-export default async function SettingsPage() {
-  const { userId } = await auth()
+import { useUser, UserButton, useClerk } from '@clerk/nextjs'
+import { getGuest, clearGuest } from '@/lib/guest'
+import { useRouter } from 'next/navigation'
+
+export default function SettingsPage() {
+  const { isSignedIn } = useUser()
+  const { signOut } = useClerk()
+  const router = useRouter()
+  const guest = typeof window !== 'undefined' ? getGuest() : null
+
+  function handleSignOut() {
+    if (isSignedIn) {
+      signOut(() => router.replace('/'))
+    } else {
+      clearGuest()
+      router.replace('/')
+    }
+  }
 
   return (
     <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
       <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+
+      {/* Sign-in CTA for guests */}
+      {!isSignedIn && guest && (
+        <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-foreground">Save your progress</p>
+          <p className="text-xs text-muted-foreground">
+            You&apos;re training as <strong>{guest.username}</strong>. Create an account to
+            back up your streaks and access them from any device.
+          </p>
+          <a
+            href="/sign-up"
+            className="block w-full text-center py-2 px-4 bg-primary text-primary-foreground rounded-lg text-sm font-semibold"
+          >
+            Create account
+          </a>
+          <a
+            href="/sign-in"
+            className="block w-full text-center py-2 px-4 bg-secondary text-foreground rounded-lg text-sm font-medium"
+          >
+            Sign in
+          </a>
+        </div>
+      )}
 
       {/* Notifications */}
       <div className="bg-secondary rounded-xl p-4 space-y-4">
@@ -77,18 +115,19 @@ export default async function SettingsPage() {
       {/* Account */}
       <div className="bg-secondary rounded-xl p-4 space-y-4">
         <h2 className="font-semibold text-foreground">Account</h2>
-        <UserButton />
-        <button className="w-full py-2 px-4 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium">
-          Sign Out
+        {isSignedIn && <UserButton />}
+        <button
+          onClick={handleSignOut}
+          className="w-full py-2 px-4 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium"
+        >
+          {isSignedIn ? 'Sign Out' : 'Exit (clear local data)'}
         </button>
       </div>
 
       {/* About */}
       <div className="bg-secondary rounded-xl p-4 space-y-2">
         <h2 className="font-semibold text-foreground">About</h2>
-        <p className="text-xs text-muted-foreground">
-          CenturyFit v1.0
-        </p>
+        <p className="text-xs text-muted-foreground">CenturyFit v1.0</p>
         <p className="text-xs text-muted-foreground">
           100 push-ups, pull-ups, and squats every day
         </p>
