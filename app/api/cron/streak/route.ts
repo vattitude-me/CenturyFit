@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import type { Database } from '@/lib/supabase/types'
+
+type StreakRow = Database['public']['Tables']['streaks']['Row']
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +28,7 @@ export async function GET(request: Request) {
     const todayStr = new Date().toISOString().split('T')[0] // "YYYY-MM-DD" UTC
     const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0]
 
-    const updates = users.map((streak) => {
+    const updates = users.map((streak: StreakRow) => {
       const lastActiveStr = streak.last_active_date ?? null
       let newStreak = streak.current_streak || 0
       let newLongest = streak.longest_streak || 0

@@ -32,7 +32,8 @@ export async function GET(request: Request) {
 
       // notification_prefs may be an array (one-to-many join) or object; normalise to object
       const rawPrefs = user.push_subscriptions[0]?.notification_prefs
-      const prefs = Array.isArray(rawPrefs) ? rawPrefs[0] : rawPrefs
+      const prefs: { quiet_hours_start?: string | null; quiet_hours_end?: string | null } | null =
+        Array.isArray(rawPrefs) ? (rawPrefs[0] ?? null) : (rawPrefs ?? null)
       if (prefs) {
         const quietStart = parseInt(prefs.quiet_hours_start ?? '22', 10)
         const quietEnd = parseInt(prefs.quiet_hours_end ?? '08', 10)
