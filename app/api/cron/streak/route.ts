@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = await createServerClient()
 
     // Get all users with streak records
     const { data: users, error } = await supabase
