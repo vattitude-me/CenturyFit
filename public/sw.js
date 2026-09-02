@@ -1,14 +1,9 @@
 const sw = self;
-const CACHE_NAME = 'centuryfit-v1';
+const CACHE_NAME = 'centuryfit-v2';
 const STATIC_ASSETS = [
-    '/',
     '/manifest.json',
     '/icons/icon-192.png',
     '/icons/icon-512.png',
-    '/dashboard',
-    '/progress',
-    '/friends',
-    '/settings'
 ];
 sw.addEventListener('install', (event) => {
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => {
@@ -32,6 +27,8 @@ sw.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     // Only handle same-origin requests; let cross-origin (Clerk, Supabase, CDNs) pass through
     if (url.origin !== self.location.origin) return;
+    // Never intercept HTML navigations — let the browser/Next.js handle them
+    if (event.request.mode === 'navigate') return;
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(fetch(event.request).catch(() => {
             return new Response(JSON.stringify({ error: 'You are currently offline', offline: true }), {

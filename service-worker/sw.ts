@@ -2,16 +2,11 @@
 
 const sw = self as unknown as ServiceWorkerGlobalScope
 
-const CACHE_NAME = 'centuryfit-v1'
+const CACHE_NAME = 'centuryfit-v2'
 const STATIC_ASSETS = [
-  '/',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/dashboard',
-  '/progress',
-  '/friends',
-  '/settings'
 ]
 
 // Install: Cache App Shell
@@ -53,6 +48,9 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
 
   // Only handle same-origin requests; let cross-origin (Clerk, Supabase, CDNs) pass through
   if (url.origin !== sw.location.origin) return
+
+  // Never intercept HTML navigations — let the browser/Next.js handle them
+  if (event.request.mode === 'navigate') return
 
   // API calls: Network first, fallback to offline response if applicable
   if (url.pathname.startsWith('/api/')) {
