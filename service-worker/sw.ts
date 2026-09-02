@@ -2,107 +2,25 @@
 
 const sw = self as unknown as ServiceWorkerGlobalScope
 
-const CACHE_NAME = 'centuryfit-v2'
-const STATIC_ASSETS = [
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-]
+const CACHE_NAME = 'centuryfit-v3'
 
-// Install: Cache App Shell
+// Install: skip waiting immediately so new SW takes over without requiring tab close
 sw.addEventListener('install', (event: ExtendableEvent) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // Cache each asset individually so one missing icon doesn't break install
-      return Promise.all(
-        STATIC_ASSETS.map((url) =>
-          cache.add(url).catch((err) => {
-            console.warn('SW: failed to cache', url, err)
-          })
-        )
-      )
-    }).then(() => {
-      return sw.skipWaiting()
-    })
-  )
+  event.waitUntil(sw.skipWaiting())
 })
 
-// Activate: Clean old caches
+// Activate: delete all old caches and claim all clients immediately
 sw.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      )
-    }).then(() => {
-      return sw.clients.claim()
-    })
+    caches.keys()
+      .then((cacheNames) => Promise.all(cacheNames.map((name) => caches.delete(name))))
+      .then(() => sw.clients.claim())
   )
 })
 
-// Fetch: Stale-while-revalidate for static, Network-first for API
-sw.addEventListener('fetch', (event: FetchEvent) => {
-  const url = new URL(event.request.url)
-
-  // Only handle same-origin requests; let cross-origin (Clerk, Supabase, CDNs) pass through
-  if (url.origin !== sw.location.origin) return
-
-  // Never intercept HTML navigations — let the browser/Next.js handle them
-  if (event.request.mode === 'navigate') return
-
-  // API calls: Network first, fallback to offline response if applicable
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return new Response(
-          JSON.stringify({ error: 'You are currently offline', offline: true }),
-          {
-            headers: { 'Content-Type': 'application/json' },
-            status: 503
-          }
-        )
-      })
-    )
-    return
-  }
-
-  // Navigation requests & static assets: Cache first, then network fallback
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch in background to update cache
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, networkResponse)
-              })
-            }
-          })
-          .catch(() => {})
-        return cachedResponse
-      }
-
-      return fetch(event.request).then((networkResponse) => {
-        if (
-          !networkResponse ||
-          networkResponse.status !== 200 ||
-          networkResponse.type !== 'basic'
-        ) {
-          return networkResponse
-        }
-
-        const responseToCache = networkResponse.clone()
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache)
-        })
-
-        return networkResponse
-      })
-    })
-  )
+// Fetch: pass everything through — no caching, no interception
+sw.addEventListener('fetch', () => {
+  // intentionally empty — let the browser handle all requests
 })
 
 // Push Notifications

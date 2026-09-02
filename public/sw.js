@@ -1,73 +1,29 @@
 const sw = self;
-const CACHE_NAME = 'centuryfit-v2';
-const STATIC_ASSETS = [
-    '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png',
-];
+const CACHE_NAME = 'centuryfit-v3';
+
+// Install: skip waiting immediately so new SW takes over without requiring tab close
 sw.addEventListener('install', (event) => {
-    event.waitUntil(caches.open(CACHE_NAME).then((cache) => {
-        return Promise.all(STATIC_ASSETS.map((url) => cache.add(url).catch((err) => {
-            console.warn('SW: failed to cache', url, err);
-        })));
-    }).then(() => {
-        return sw.skipWaiting();
-    }));
+    event.waitUntil(sw.skipWaiting());
 });
+
+// Activate: delete all old caches and claim all clients immediately
 sw.addEventListener('activate', (event) => {
-    event.waitUntil(caches.keys().then((cacheNames) => {
-        return Promise.all(cacheNames
-            .filter((name) => name !== CACHE_NAME)
-            .map((name) => caches.delete(name)));
-    }).then(() => {
-        return sw.clients.claim();
-    }));
+    event.waitUntil(
+        caches.keys()
+            .then((cacheNames) => Promise.all(cacheNames.map((name) => caches.delete(name))))
+            .then(() => sw.clients.claim())
+    );
 });
-sw.addEventListener('fetch', (event) => {
-    const url = new URL(event.request.url);
-    // Only handle same-origin requests; let cross-origin (Clerk, Supabase, CDNs) pass through
-    if (url.origin !== self.location.origin) return;
-    // Never intercept HTML navigations — let the browser/Next.js handle them
-    if (event.request.mode === 'navigate') return;
-    if (url.pathname.startsWith('/api/')) {
-        event.respondWith(fetch(event.request).catch(() => {
-            return new Response(JSON.stringify({ error: 'You are currently offline', offline: true }), {
-                headers: { 'Content-Type': 'application/json' },
-                status: 503
-            });
-        }));
-        return;
-    }
-    event.respondWith(caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-            fetch(event.request)
-                .then((networkResponse) => {
-                if (networkResponse.status === 200) {
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, networkResponse);
-                    });
-                }
-            })
-                .catch(() => { });
-            return cachedResponse;
-        }
-        return fetch(event.request).then((networkResponse) => {
-            if (!networkResponse ||
-                networkResponse.status !== 200 ||
-                networkResponse.type !== 'basic') {
-                return networkResponse;
-            }
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, responseToCache);
-            });
-            return networkResponse;
-        });
-    }));
+
+// Fetch: pass everything through — no caching, no interception
+// Only handle push notifications below
+sw.addEventListener('fetch', () => {
+    // intentionally empty — let the browser handle all requests
 });
+
+// Push Notifications
 sw.addEventListener('push', (event) => {
-    if (!event.data)
-        return;
+    if (!event.data) return;
     try {
         const data = event.data.json();
         const title = data.title || 'CenturyFit';
@@ -75,41 +31,44 @@ sw.addEventListener('push', (event) => {
             body: data.body || 'Time for your workout!',
             icon: '/icons/icon-192.png',
             badge: '/icons/icon-192.png',
-            data: {
-                url: data.url || '/dashboard'
-            },
+            data: { url: data.url || '/dashboard' },
             tag: data.type || 'centuryfit-reminder'
         };
         event.waitUntil(sw.registration.showNotification(title, options));
-    }
-    catch (err) {
+    } catch (err) {
         console.error('Push notification parse error:', err);
     }
 });
+
+// Notification Click
 sw.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    if (event.action === 'snooze') {
-        return;
-    }
+    if (event.action === 'snooze') return;
     const targetUrl = event.notification.data?.url || '/dashboard';
-    event.waitUntil(sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-        for (const client of clientList) {
-            if (client.url.includes(targetUrl) && 'focus' in client) {
-                return client.focus();
+    event.waitUntil(
+        sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url.includes(targetUrl) && 'focus' in client) {
+                    return client.focus();
+                }
             }
-        }
-        if (sw.clients.openWindow) {
-            return sw.clients.openWindow(targetUrl);
-        }
-    }));
+            if (sw.clients.openWindow) {
+                return sw.clients.openWindow(targetUrl);
+            }
+        })
+    );
 });
+
+// Background Sync
 sw.addEventListener('sync', (event) => {
     if (event.tag === 'sync-sets') {
-        event.waitUntil(sw.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-                client.postMessage({ type: 'SYNC_OFFLINE_SETS' });
-            });
-        }));
+        event.waitUntil(
+            sw.clients.matchAll().then((clients) => {
+                clients.forEach((client) => {
+                    client.postMessage({ type: 'SYNC_OFFLINE_SETS' });
+                });
+            })
+        );
     }
 });
 //# sourceMappingURL=sw.js.map
