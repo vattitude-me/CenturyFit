@@ -13,9 +13,9 @@ export default defineConfig({
       manifest: {
         name: 'CenturyFit',
         short_name: 'CenturyFit',
-        description: '100 Push-ups. 100 Pull-ups. 100 Squats. Every day.',
-        theme_color: '#7C3AED',
-        background_color: '#0F0A1A',
+        description: '3 to 100. Push-ups, pull-ups, squats — every day.',
+        theme_color: '#161826',
+        background_color: '#161826',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',

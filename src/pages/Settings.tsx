@@ -1,218 +1,132 @@
 import { useEffect, useState } from 'react';
-import { getSettings, saveSettings, getProfile, saveProfile } from '../db';
-import { db } from '../db';
-import type { AppSettings, UserProfile } from '../types';
-import {
-  ProfileIcon, DumbbellIcon, BellIcon, VolumeIcon, MoonIcon,
-  ShieldIcon, InfoIcon, LogOutIcon, ChevronRightIcon, ChevronLeftIcon,
-} from '../components/icons';
-
-const INJURY_OPTIONS = [
-  { key: 'shoulder' as const, label: 'Shoulder' },
-  { key: 'knee' as const, label: 'Knee' },
-  { key: 'wrist' as const, label: 'Wrist' },
-  { key: 'back' as const, label: 'Back' },
-];
-
-function WorkoutPreferences({ profile, onClose, onSaved }: { profile: UserProfile; onClose: () => void; onSaved: (p: UserProfile) => void }) {
-  const [pullupBar, setPullupBar] = useState(profile.equipment.pullupBar);
-  const [resistanceBand, setResistanceBand] = useState(profile.equipment.resistanceBand);
-  const [injuries, setInjuries] = useState(profile.injuries);
-
-  async function handleDone() {
-    const updated: UserProfile = { ...profile, equipment: { pullupBar, resistanceBand }, injuries };
-    await saveProfile(updated);
-    onSaved(updated);
-    onClose();
-  }
-
-  return (
-    <div className="flex flex-col min-h-full px-6 py-8 bg-bg-primary animate-fade-in">
-      <div className="flex items-center gap-3 mb-8">
-        <button onClick={onClose} className="text-text-secondary">
-          <ChevronLeftIcon size={24} />
-        </button>
-        <h1 className="text-xl font-bold">Workout Preferences</h1>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-sm text-text-muted mb-4 uppercase tracking-wider">Available Equipment</h2>
-        <div className="flex flex-col gap-3">
-          <label className="flex items-center gap-4 p-4 rounded-2xl bg-bg-card border-2 border-border cursor-pointer">
-            <input type="checkbox" checked={pullupBar} onChange={e => setPullupBar(e.target.checked)} className="w-5 h-5 rounded accent-purple-accent" />
-            <span>Pull-up Bar</span>
-          </label>
-          <label className="flex items-center gap-4 p-4 rounded-2xl bg-bg-card border-2 border-border cursor-pointer">
-            <input type="checkbox" checked={resistanceBand} onChange={e => setResistanceBand(e.target.checked)} className="w-5 h-5 rounded accent-purple-accent" />
-            <span>Resistance Band</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-sm text-text-muted mb-4 uppercase tracking-wider">Any injuries or limitations?</h2>
-        <div className="flex flex-wrap gap-3">
-          {INJURY_OPTIONS.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setInjuries(prev => ({ ...prev, [key]: !prev[key] }))}
-              className={`px-4 py-2 rounded-full border-2 transition-all ${
-                injuries[key] ? 'border-red-accent bg-red-accent/10 text-red-accent' : 'border-border bg-bg-card text-text-secondary'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1" />
-      <button onClick={handleDone} className="w-full py-4 bg-purple-accent text-white font-semibold rounded-2xl text-lg">
-        Done
-      </button>
-    </div>
-  );
-}
+import { Mic, Camera, Timer, Vibrate, Bell, Sparkles, Lock, Info } from 'lucide-react';
+import Button from '../components/Button';
+import Toggle from '../components/Toggle';
+import ListRow from '../components/ListRow';
+import { getProfile, saveProfile, getSettings, saveSettings, resetAllData } from '../db';
+import type { Profile, AppSettings } from '../types';
 
 export default function Settings() {
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [view, setView] = useState<'main' | 'workout-prefs'>('main');
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
 
   useEffect(() => {
-    Promise.all([getSettings(), getProfile()]).then(([s, p]) => {
-      setSettings(s);
-      if (p) setProfile(p);
-    });
+    getProfile().then((p) => setProfile(p ?? null));
+    getSettings().then(setSettings);
   }, []);
 
-  async function updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
-    if (!settings) return;
-    const updated = { ...settings, [key]: value };
-    setSettings(updated);
-    await saveSettings(updated);
-  }
+  if (!profile || !settings) return null;
 
-  async function handleReset() {
-    if (confirm('This will delete all your data. Are you sure?')) {
-      await db.delete();
-      window.location.hash = '#/onboarding/welcome';
-      window.location.reload();
-    }
-  }
+  const initial = (profile.name.trim()[0] || 'A').toUpperCase();
 
-  if (!settings) return null;
+  const saveName = async () => {
+    const n = nameDraft.trim().slice(0, 24);
+    const next = { ...profile, name: n || profile.name };
+    setProfile(next);
+    await saveProfile(next);
+    setEditingName(false);
+  };
 
-  if (view === 'workout-prefs' && profile) {
-    return (
-      <WorkoutPreferences
-        profile={profile}
-        onClose={() => setView('main')}
-        onSaved={setProfile}
-      />
-    );
-  }
+  const updateSetting = async (patch: Partial<AppSettings>) => {
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    await saveSettings(next);
+  };
 
-  const items = [
-    {
-      section: 'Preferences',
-      rows: [
-        { icon: DumbbellIcon, label: 'Workout Preferences', action: 'chevron' as const, onClick: () => setView('workout-prefs') },
-        { icon: BellIcon, label: 'Reminders & Nudges', action: 'chevron' as const },
-        {
-          icon: VolumeIcon,
-          label: 'Sound & Haptics',
-          action: 'toggle' as const,
-          value: settings.soundEnabled,
-          onChange: () => updateSetting('soundEnabled', !settings.soundEnabled),
-        },
-      ],
-    },
-    {
-      section: 'Display',
-      rows: [
-        {
-          icon: MoonIcon,
-          label: 'Dark Mode',
-          action: 'toggle' as const,
-          value: settings.theme === 'dark',
-          onChange: () => updateSetting('theme', settings.theme === 'dark' ? 'light' : 'dark'),
-        },
-      ],
-    },
-    {
-      section: 'About',
-      rows: [
-        { icon: ShieldIcon, label: 'Data & Privacy', action: 'chevron' as const },
-        { icon: InfoIcon, label: 'About CenturyFit', action: 'chevron' as const },
-      ],
-    },
-  ];
+  const handleReset = async () => {
+    await resetAllData();
+    window.location.reload();
+  };
 
   return (
-    <div className="px-5 py-6 animate-fade-in">
-      {/* Profile Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-14 h-14 rounded-full bg-bg-card flex items-center justify-center">
-          <ProfileIcon size={32} />
+    <div className="flex-1 h-full overflow-y-auto flex flex-col px-5 pt-4 pb-24 gap-3.75">
+      <div className="flex items-center gap-3.25">
+        <span className="w-13 h-13 flex-none rounded-2xl bg-accent-800 grid place-items-center text-[19px] font-medium text-accent-100">
+          {initial}
+        </span>
+        {!editingName ? (
+          <span className="flex-1 flex items-center gap-2.5">
+            <span className="flex-1 flex flex-col gap-px">
+              <span className="text-[17px] font-medium">{profile.name}</span>
+              <span className="text-[11.5px] text-neutral-500">This phone only</span>
+            </span>
+            <Button
+              variant="secondary" className="h-8.5 px-3.5 text-xs flex-none"
+              onClick={() => { setNameDraft(profile.name); setEditingName(true); }}
+            >
+              Edit
+            </Button>
+          </span>
+        ) : (
+          <span className="flex-1 flex flex-col gap-1.75">
+            <span className="flex items-center gap-2">
+              <input
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false); }}
+                placeholder="Your name"
+                maxLength={24}
+                className="flex-1 h-9.5 px-2.5 rounded-lg bg-surface border border-neutral-800 text-sm text-text outline-none focus-visible:border-accent"
+              />
+              <Button variant="primary" className="h-9.5 px-3.5 flex-none" onClick={saveName}>Save</Button>
+            </span>
+            <span className="text-[11px] text-neutral-600">Stays on this phone. Used in greetings and, later, in Squad.</span>
+          </span>
+        )}
+      </div>
+
+      <div className="p-3.5 rounded-2xl bg-accent-900 flex flex-col gap-2.25">
+        <div className="flex items-center gap-2.25">
+          <span className="text-sm text-accent">☁</span>
+          <span className="text-[13.5px] font-medium text-accent-100">Accounts &amp; sync: coming soon</span>
         </div>
-        <div>
-          <h1 className="text-xl font-bold">{profile?.name || 'Athlete'}</h1>
-          <p className="text-text-secondary text-sm">View Profile</p>
+        <div className="text-xs leading-[1.5] text-accent-200">
+          Everything lives on your device today, no sign-up, no upload. When sync lands, your history merges into the account. Nothing to re-enter.
         </div>
       </div>
 
-      {/* Settings Sections */}
-      {items.map(({ section, rows }) => (
-        <div key={section} className="mb-6">
-          <h2 className="text-xs text-text-muted uppercase tracking-wider mb-3 px-1">{section}</h2>
-          <div className="bg-bg-card rounded-2xl overflow-hidden">
-            {rows.map((row, i) => {
-              const { icon: Icon, label, action } = row;
-              const value = 'value' in row ? row.value : undefined;
-              const onChange = 'onChange' in row ? row.onChange : undefined;
-              const onClick = 'onClick' in row ? row.onClick : undefined;
-              return (
-              <button
-                key={label}
-                onClick={action === 'toggle' ? onChange : onClick}
-                className={`w-full flex items-center gap-4 px-4 py-4 text-left ${
-                  i > 0 ? 'border-t border-border/50' : ''
-                }`}
-              >
-                <Icon size={20} />
-                <div className="flex-1">
-                  <div className="text-sm font-medium">{label}</div>
-                </div>
-                {action === 'toggle' && (
-                  <div className={`w-12 h-7 rounded-full transition-colors relative ${
-                    value ? 'bg-purple-accent' : 'bg-border'
-                  }`}>
-                    <div className={`w-5 h-5 rounded-full bg-white absolute top-1 transition-transform ${
-                      value ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
-                  </div>
-                )}
-                {action === 'chevron' && <ChevronRightIcon size={18} />}
-              </button>
-              );
-            })}
-          </div>
+      <div className="flex flex-col gap-1.75">
+        <span className="text-[11px] tracking-[0.1em] text-neutral-500">COUNTER</span>
+        <div className="rounded-[14px] bg-surface shadow-sm overflow-hidden">
+          <ListRow
+            isFirst icon={<Mic size={14} />} title="Voice count" subtitle="Says every rep out loud"
+            trailing={<Toggle size="dense" on={settings.voice} onToggle={() => updateSetting({ voice: !settings.voice })} />}
+          />
+          <ListRow
+            icon={<Camera size={14} />} title="Camera auto-count" subtitle="Uses the front camera, on-device"
+            trailing={<Toggle size="dense" on={settings.camera} onToggle={() => updateSetting({ camera: !settings.camera })} />}
+          />
+          <ListRow
+            icon={<Timer size={14} />} title="Metronome ticks" subtitle="Down / up cue tones"
+            trailing={<Toggle size="dense" on={settings.ticks} onToggle={() => updateSetting({ ticks: !settings.ticks })} />}
+          />
+          <ListRow
+            icon={<Vibrate size={14} />} title="Haptics" subtitle="A pulse per rep"
+            trailing={<Toggle size="dense" on={settings.haptics} onToggle={() => updateSetting({ haptics: !settings.haptics })} />}
+          />
         </div>
-      ))}
+      </div>
 
-      {/* Danger Zone */}
-      <button
-        onClick={handleReset}
-        className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl bg-bg-card"
-      >
-        <LogOutIcon size={20} />
-        <span className="text-sm font-medium text-red-accent">Reset All Data</span>
-      </button>
+      <div className="flex flex-col gap-1.75">
+        <span className="text-[11px] tracking-[0.1em] text-neutral-500">REMINDERS</span>
+        <div className="rounded-[14px] bg-surface shadow-sm overflow-hidden">
+          <ListRow
+            isFirst icon={<Bell size={14} />} title="Window reminders" subtitle="5 minutes before each window"
+            trailing={<Toggle size="dense" on={settings.reminders} onToggle={() => updateSetting({ reminders: !settings.reminders })} />}
+          />
+          <ListRow icon={<Sparkles size={14} />} title="Motivational nudges" subtitle="Playful, max two a day" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
+          <ListRow icon={<Lock size={14} />} title="Data & privacy" subtitle="On-device, export any time" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
+          <ListRow icon={<Info size={14} />} title="About Hundred" subtitle="v1.0 · free forever" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
+        </div>
+      </div>
 
-      <p className="text-center text-text-muted text-xs mt-8">
-        CenturyFit v1.0.0
-      </p>
+      <Button variant="ghost" block className="h-10 text-neutral-500" onClick={handleReset}>Reset all data</Button>
+
+      <div className="text-[11.5px] leading-[1.5] text-neutral-600 text-center pt-1">
+        Hundred is free forever. No ads, no paywall,<br />no locked exercises.
+      </div>
     </div>
   );
 }

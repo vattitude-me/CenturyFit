@@ -10,7 +10,7 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-export function playClick(frequency = 800, duration = 0.08): void {
+function tone(frequency: number, duration: number, gainLevel = 0.25): void {
   const ctx = getAudioContext();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -18,10 +18,15 @@ export function playClick(frequency = 800, duration = 0.08): void {
   gain.connect(ctx.destination);
   osc.frequency.value = frequency;
   osc.type = 'sine';
-  gain.gain.setValueAtTime(0.3, ctx.currentTime);
+  gain.gain.setValueAtTime(gainLevel, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
   osc.start(ctx.currentTime);
   osc.stop(ctx.currentTime + duration);
+}
+
+/** Metronome tick: lower tone on the down phase, higher on up. ~40-60ms, -12dBFS. */
+export function playTick(phase: 'down' | 'up'): void {
+  tone(phase === 'down' ? 440 : 660, 0.05, 0.22);
 }
 
 export function playComplete(): void {
@@ -42,13 +47,45 @@ export function playComplete(): void {
   });
 }
 
-export function speakNumber(n: number): void {
+let speaking = false;
+
+/** Speaks the rep count. At tempo < 1.5s/rep, skips if the previous utterance
+ * hasn't finished. Below 1.0s/rep, speaks only every other rep. */
+export function speakCount(n: number, tempo: number): void {
   if (!('speechSynthesis' in window)) return;
-  const utterance = new SpeechSynthesisUtterance(String(n));
-  utterance.rate = 1.8;
-  utterance.pitch = 1.0;
-  utterance.volume = 0.8;
-  speechSynthesis.speak(utterance);
+  if (tempo < 1.5 && speaking) return;
+  if (tempo < 1.0 && n % 2 !== 0) return;
+
+  try {
+    const u = new SpeechSynthesisUtterance(String(n));
+    u.rate = 1.15;
+    u.volume = 0.9;
+    u.onstart = () => { speaking = true; };
+    u.onend = () => { speaking = false; };
+    u.onerror = () => { speaking = false; };
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch {
+    // speechSynthesis unavailable
+  }
+}
+
+const MILESTONE_PHRASES = {
+  halfway: 'Halfway',
+  threeLeft: 'Three more',
+  complete: 'Set complete',
+} as const;
+
+export function speakMilestone(kind: keyof typeof MILESTONE_PHRASES): void {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(MILESTONE_PHRASES[kind]);
+    u.rate = 1.15;
+    u.volume = 0.9;
+    speechSynthesis.speak(u);
+  } catch {
+    // speechSynthesis unavailable
+  }
 }
 
 export function vibrate(pattern: number | number[] = 50): void {

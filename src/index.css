@@ -1,43 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #0F0A1A;
-  --color-bg-secondary: #1A1128;
-  --color-bg-card: #231A33;
-  --color-bg-card-hover: #2D2240;
-  --color-bg-card-elevated: #2A2039;
-  --color-purple-accent: #7C3AED;
-  --color-purple-light: #A78BFA;
-  --color-purple-dark: #5B21B6;
-  --color-orange-accent: #F97316;
-  --color-green-accent: #22C55E;
-  --color-green-light: #4ADE80;
-  --color-red-accent: #EF4444;
-  --color-yellow-accent: #EAB308;
-  --color-blue-accent: #3B82F6;
-  --color-pink-accent: #EC4899;
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
-  --color-border: #334155;
-}
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --color-accent: #9184d9;
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
+
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
 }
 
 html, body, #root {
   height: 100%;
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
 }
 
 input, textarea {
@@ -47,39 +60,60 @@ input, textarea {
 
 ::-webkit-scrollbar {
   width: 0;
+  height: 0;
   display: none;
 }
 
-@keyframes ring-fill {
-  from { stroke-dashoffset: var(--ring-circumference); }
-  to { stroke-dashoffset: var(--ring-offset); }
+a { color: var(--color-accent); }
+a:hover { color: var(--color-accent-400); }
+
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+@keyframes hpulse {
+  0%, 100% { transform: scale(1); opacity: .55; }
+  50% { transform: scale(1.06); opacity: 1; }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
-  50% { box-shadow: 0 0 0 12px rgba(124, 58, 237, 0); }
+@keyframes hrise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 
-@keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
 }
 
-@keyframes fade-in {
+@keyframes cross-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.4s ease-out;
+@keyframes cover-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+@keyframes cover-down {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 1; }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s infinite;
+.route-forward {
+  animation: slide-in-left 240ms ease-out;
+}
+
+.route-tab {
+  animation: cross-fade 140ms ease-out;
+}
+
+.route-session {
+  animation: cover-up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.route-done {
+  animation: hrise 300ms ease-out;
 }
 
 .safe-bottom {

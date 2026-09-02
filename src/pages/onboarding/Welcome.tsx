@@ -1,66 +1,57 @@
 import { useNavigate } from 'react-router-dom';
-import personRunning from '../../components/images/person-running.png';
+import Button from '../../components/Button';
+import Tag from '../../components/Tag';
+
+const BAR_HEIGHTS = [14, 20, 29, 36, 47, 58, 71, 86, 100];
+const BAR_COLORS = [
+  '#423a6a', '#423a6a', '#5d5294', '#5d5294', '#796cbf',
+  '#796cbf', '#968ae0', '#b5abfc', '#9184d9',
+];
 
 export default function Welcome() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-screen bg-bg-primary overflow-hidden">
-      {/* Hero photo */}
-      <div
-        className="absolute left-0 right-0 top-[24%] h-[48%] overflow-hidden"
-        style={{
-          WebkitMaskImage:
-            'linear-gradient(180deg, transparent 0%, black 18%, black 78%, transparent 100%)',
-          maskImage: 'linear-gradient(180deg, transparent 0%, black 18%, black 78%, transparent 100%)',
-        }}
-      >
-        <img
-          src={personRunning}
-          alt=""
-          className="absolute left-1/2 top-1/2 w-[135%] max-w-none -translate-x-[38%] -translate-y-1/2"
-        />
+    <div className="route-forward h-full overflow-y-auto flex flex-col px-6.5 pt-8.5 pb-6.5">
+      <div className="flex flex-col gap-2.5">
+        <div className="text-[11px] tracking-[0.22em] text-accent font-semibold">HUNDRED</div>
+        <div className="text-[38px] leading-[1.04] font-medium tracking-[-0.03em]" style={{ textWrap: 'pretty' }}>
+          Three hundred reps a day.<br />Cut into pieces you'll<br />actually do.
+        </div>
+        <div className="text-sm leading-[1.55] text-neutral-400 max-w-[290px]">
+          100 push-ups, 100 pull-ups, 100 squats, spread across your day, counted out loud, one honest rep at a time.
+        </div>
       </div>
 
-      {/* Scrim so text/buttons stay legible over the photo */}
       <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(15,10,26,0.55) 0%, rgba(15,10,26,0.15) 18%, rgba(15,10,26,0.15) 55%, rgba(15,10,26,0.85) 78%, #0F0A1A 100%)',
-        }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(circle at 15% 8%, rgba(124,58,237,0.35), transparent 55%)' }}
-      />
-
-      {/* Content */}
-      <div className="relative flex flex-col justify-between min-h-screen px-6 py-12 animate-fade-in">
-        <div className="flex flex-col gap-3">
-          <h1 className="text-4xl font-bold tracking-tight">
-            CENTURY<span className="text-purple-accent">FIT</span>
-          </h1>
-          <p className="text-text-secondary max-w-xs leading-relaxed">
-            100 Push-ups. 100 Pull-ups. 100 Squats.<br />
-            Every day. Any level.<br />
-            Stronger every day.
-          </p>
+        className="flex-1 min-h-9 relative my-6.5 mb-1.5 rounded-2xl overflow-hidden flex items-end p-4 shadow-sm"
+        style={{ background: 'linear-gradient(150deg, #1d2033, #161826 62%)' }}
+      >
+        <div
+          className="absolute -top-10 -right-7.5 w-[200px] h-[200px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(145,132,217,.30), transparent 65%)' }}
+        />
+        <div className="flex items-end gap-1.25 h-full w-full">
+          {BAR_HEIGHTS.map((h, i) => (
+            <div key={i} style={{ height: `${h}%`, background: BAR_COLORS[i] }} className="flex-1 rounded-[3px]" />
+          ))}
         </div>
+        <div className="absolute left-4 top-3.5 text-[11px] tracking-[0.08em] text-neutral-500">
+          3 REPS &nbsp;→&nbsp; 100 REPS · 12 WEEKS
+        </div>
+      </div>
 
-        <div className="w-full max-w-sm flex flex-col gap-3">
-          <button
-            onClick={() => navigate('/onboarding/goals')}
-            className="w-full py-4 bg-purple-accent hover:bg-purple-dark text-white font-semibold rounded-2xl transition-colors text-lg shadow-lg shadow-purple-accent/25"
-          >
-            Get Started
-          </button>
-          <button
-            onClick={() => navigate('/onboarding/goals')}
-            className="w-full py-3 text-text-secondary hover:text-text-primary transition-colors text-sm"
-          >
-            Log In
-          </button>
+      <div className="flex flex-col gap-2.25 mt-3.5">
+        <Button variant="primary" block className="h-12 text-[15px]" onClick={() => navigate('/onboarding/baseline')}>
+          Find my starting point
+        </Button>
+        <Button variant="secondary" block className="h-11" onClick={() => navigate('/today')}>
+          I already train, skip ahead
+        </Button>
+        <div className="flex justify-center gap-2 mt-1.5">
+          <Tag variant="neutral">Free forever</Tag>
+          <Tag variant="neutral">Works offline</Tag>
+          <Tag variant="neutral">No account needed</Tag>
         </div>
       </div>
     </div>

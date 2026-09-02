@@ -1,135 +1,110 @@
-export type Exercise = 'pushups' | 'pullups' | 'squats';
+export type Exercise = 'push' | 'pull' | 'squat';
 
-export type ExerciseVariant =
-  | 'wall' | 'incline' | 'knee' | 'negative_pushup' | 'full_pushup' | 'tempo_pushup' | 'explosive_pushup'
-  | 'dead_hang' | 'band_assisted' | 'australian_rows' | 'negative_pullup' | 'band_pullup' | 'strict_pullup' | 'weighted_pullup'
-  | 'box_squat' | 'assisted_squat' | 'bodyweight_squat' | 'tempo_squat' | 'pause_squat' | 'pistol_squat';
+export type PullRung = 0 | 1 | 2 | 3 | 4; // rows, negatives, band, partials, full
+export type BarAccess = 'doorway' | 'park' | 'none';
+export type CounterMode = 'voice' | 'camera' | 'tap';
+export type CounterVariant = 'cadenceRing' | 'bigNumeral' | 'ladderLane';
+export type DashboardVariant = 'rings' | 'fuelBars';
+export type SetModel = 'ladder' | 'percent';
+export type WindowStatus = 'pending' | 'done' | 'missed' | 'reflowed';
 
-export type Tier = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-
-export type TimeWindow = 'morning' | 'midday' | 'evening' | 'night';
-
-export interface UserProfile {
+export interface Profile {
   id: string;
   name: string;
   createdAt: number;
-  goals: Exercise[];
-  timeWindows: TimeWindow[];
-  customWindows?: { label: string; start: string; end: string }[];
-  wakeTime: string;
-  sleepTime: string;
-  equipment: {
-    pullupBar: boolean;
-    resistanceBand: boolean;
-  };
-  injuries: {
-    shoulder: boolean;
-    knee: boolean;
-    wrist: boolean;
-    back: boolean;
-  };
+  maxes: Record<Exercise, number>;
+  pullRung: PullRung;
+  barAccess: BarAccess;
+  wake: string; // "06:30"
+  sleep: string; // "23:00"
+  windowCount: number;
+  reflow: boolean;
   onboardingComplete: boolean;
   baselineComplete: boolean;
+  lastRebaselineAt?: string; // ISO date
 }
 
-export interface Baseline {
+export interface BaselineLog {
+  id: string;
   exercise: Exercise;
   maxReps: number;
-  tier: Tier;
-  variant: ExerciseVariant;
   testedAt: number;
 }
 
-export interface DailyPlan {
-  id: string;
-  date: string; // YYYY-MM-DD
+export interface WindowItem {
   exercise: Exercise;
-  targetReps: number;
-  variant: ExerciseVariant;
-  blocks: WorkoutBlock[];
-  completedReps: number;
-  status: 'pending' | 'in_progress' | 'completed';
+  reps: number;
+  ladder?: number[];
 }
 
-export interface WorkoutBlock {
+export interface Window {
   id: string;
-  time: string; // HH:MM
-  targetReps: number;
-  completedReps: number;
-  status: 'pending' | 'active' | 'completed' | 'skipped';
-  completedAt?: number;
+  at: string; // "12:30"
+  items: WindowItem[];
+  status: WindowStatus;
+}
+
+export interface DayPlan {
+  id: string;
+  date: string; // YYYY-MM-DD
+  dayIndex: number;
+  targets: Record<Exercise, number>;
+  windows: Window[];
+  model: SetModel;
 }
 
 export interface SetLog {
   id: string;
   date: string;
+  at: string;
   exercise: Exercise;
-  variant: ExerciseVariant;
   reps: number;
+  targetReps: number;
   tempo: number;
-  effort: 'easy' | 'moderate' | 'hard' | 'max';
+  mode: CounterMode;
+  windowId?: string;
+  source: 'session' | 'manual' | 'baseline';
   completedAt: number;
-  blockId?: string;
 }
 
 export interface StreakData {
   current: number;
   longest: number;
-  freezesRemaining: number;
   lastActiveDate: string;
+  graceDaysUsedInWindow: number;
+  windowStartDate: string;
 }
 
 export interface DayRecord {
   date: string;
-  exercises: {
-    pushups: { target: number; completed: number };
-    pullups: { target: number; completed: number };
-    squats: { target: number; completed: number };
-  };
-  allGoalsMet: boolean;
+  exercises: Record<Exercise, { target: number; completed: number }>;
+  totalVolumePct: number;
+  streakCredit: boolean;
 }
-
-export type CountMode = 'metronome' | 'tap';
 
 export interface AppSettings {
-  theme: 'dark' | 'light';
-  soundEnabled: boolean;
-  voiceCuesEnabled: boolean;
-  vibrationEnabled: boolean;
-  defaultTempo: number;
-  defaultCountMode: CountMode;
-  defaultRestTime: number;
+  counterVariant: CounterVariant;
+  dashboardVariant: DashboardVariant;
+  voice: boolean;
+  ticks: boolean;
+  haptics: boolean;
+  camera: boolean; // feature-flagged, default off
+  reminders: boolean; // stub, default off
+  nudges: boolean; // stub, default off
+  waitlistSquad: boolean;
+  defaultTempo: number; // 1.00–4.00 step .25, default 2.00
 }
 
-export interface Friend {
-  id: string;
-  name: string;
-  username: string;
-  points: number;
-  streak: number;
-  status: 'accepted' | 'pending';
-  lastActivityText: string;
-  lastActivityAt: number;
-}
+export const EXERCISE_LABELS: Record<Exercise, string> = {
+  push: 'Push-ups',
+  pull: 'Pull-ups',
+  squat: 'Squats',
+};
 
-export interface Challenge {
-  id: string;
-  name: string;
-  description: string;
-  exercise: Exercise | 'all';
-  goal: number;
-  progress: number;
-  unit: string;
-  status: 'active' | 'completed';
-}
-
-export type NotificationType = 'nudge' | 'reminder' | 'milestone' | 'challenge';
-
-export interface NotificationItem {
-  id: string;
-  type: NotificationType;
-  title: string;
-  body: string;
-  createdAt: number;
-  read: boolean;
-}
+export const PULL_RUNG_LABELS: Record<PullRung, string> = {
+  0: 'Rows',
+  1: 'Negatives',
+  2: 'Band',
+  3: 'Partials',
+  4: 'Full',
+};

@@ -1,230 +1,105 @@
 import { useEffect, useState } from 'react';
-import { getAllDayRecords, getStreak, getSetLogs, getDailyPlans } from '../db';
-import { EXERCISE_LABELS } from '../engine/progression';
-import { FlameIcon, TargetIcon, TrendingUpIcon, TrophyIcon, ChevronLeftIcon, ChevronRightIcon } from '../components/icons';
-import type { DayRecord, StreakData, Exercise } from '../types';
+import StatCard from '../components/StatCard';
+import IconChip from '../components/IconChip';
+import { getStreak, getAllDayRecords } from '../db';
+import type { StreakData } from '../types';
 
-const EXERCISE_COLORS: Record<Exercise, string> = {
-  pushups: '#F97316',
-  pullups: '#22C55E',
-  squats: '#A78BFA',
-};
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-function getToday(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+const WEEK_BARS = [
+  [54, 32, 61], [68, 44, 72], [41, 25, 48], [79, 52, 83], [88, 60, 91], [36, 20, 40], [46, 29, 44],
+];
 
-function getWeekDates(): string[] {
-  const today = new Date();
-  const day = today.getDay();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((day + 6) % 7));
-  const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
-  return dates;
-}
+const CAL_LEVELS = [0,3,3,2,3,1,0,3,3,3,2,3,3,0,1,3,3,3,3,2,0,3,3,2,3,3,3,3];
+const CAL_BG = ['rgba(233,233,237,.05)', '#2b2741', '#5d5294', '#9184d9'];
 
-function getMonthCalendar(): { date: string; dayNum: number }[] {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const dates: { date: string; dayNum: number }[] = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    dates.push({ date: dateStr, dayNum: d });
-  }
-  return dates;
-}
-
-interface DayBar {
-  date: string;
-  label: string;
-  reps: Record<Exercise, number>;
-}
+const PBS = [
+  { name: 'Best push-up set', val: 21, delta: '+3', icon: '⌃', chip: '#423a6a' },
+  { name: 'Best pull-up set', val: 6, delta: '+2', icon: '⌄', chip: '#3f424d' },
+  { name: 'Best squat set', val: 48, delta: '+5', icon: '◍', chip: '#2b2741' },
+];
 
 export default function Progress() {
-  const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0, freezesRemaining: 3, lastActiveDate: '' });
-  const [dayRecords, setDayRecords] = useState<DayRecord[]>([]);
-  const [weekStats, setWeekStats] = useState<{ totalReps: number; completionRate: number; personalBests: number }>({ totalReps: 0, completionRate: 0, personalBests: 0 });
-  const [weekBars, setWeekBars] = useState<DayBar[]>([]);
+  const [streak, setStreak] = useState<StreakData | null>(null);
+  const [totalReps, setTotalReps] = useState(0);
 
   useEffect(() => {
-    async function load() {
-      const s = await getStreak();
-      setStreak(s);
-      const records = await getAllDayRecords();
-      setDayRecords(records);
-
-      const weekDates = getWeekDates();
-      const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      let totalReps = 0;
-      let daysWithGoals = 0;
-      let daysComplete = 0;
-      const bars: DayBar[] = [];
-
-      for (let i = 0; i < weekDates.length; i++) {
-        const date = weekDates[i];
-        const logs = await getSetLogs(date);
-        const reps: Record<Exercise, number> = { pushups: 0, pullups: 0, squats: 0 };
-        for (const log of logs) reps[log.exercise] += log.reps;
-        totalReps += logs.reduce((sum, l) => sum + l.reps, 0);
-        bars.push({ date, label: dayLabels[i], reps });
-
-        const dayPlans = await getDailyPlans(date);
-        if (dayPlans.length > 0) {
-          daysWithGoals++;
-          if (dayPlans.every(p => p.completedReps >= p.targetReps)) daysComplete++;
-        }
-      }
-      setWeekBars(bars);
-      setWeekStats({
-        totalReps,
-        completionRate: daysWithGoals > 0 ? Math.round((daysComplete / daysWithGoals) * 100) : 0,
-        personalBests: 0,
-      });
-    }
-    load();
+    getStreak().then(setStreak);
+    getAllDayRecords().then((records) => {
+      const total = records.reduce((sum, r) => {
+        return sum + Object.values(r.exercises).reduce((s, e) => s + e.completed, 0);
+      }, 0);
+      setTotalReps(total);
+    });
   }, []);
 
-  const today = getToday();
-  const monthCalendar = getMonthCalendar();
-  const completedDates = new Set(dayRecords.filter(r => r.allGoalsMet).map(r => r.date));
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const currentMonth = monthNames[new Date().getMonth()];
-  const currentYear = new Date().getFullYear();
-  const maxBarValue = Math.max(30, ...weekBars.map(b => Math.max(b.reps.pushups, b.reps.pullups, b.reps.squats)));
-
   return (
-    <div className="px-5 py-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Progress</h1>
-        <span className="text-xs text-text-secondary bg-bg-card px-3 py-1.5 rounded-full">This Week</span>
+    <div className="flex-1 h-full overflow-y-auto flex flex-col px-5 pt-4 pb-24 gap-3.75">
+      <div className="text-[22px] font-medium tracking-[-0.02em]">Progress</div>
+
+      <div className="flex gap-2.5 items-stretch">
+        <div
+          className="flex-1 p-[15px] rounded-[15px] shadow-sm flex flex-col gap-0.5"
+          style={{ background: 'linear-gradient(150deg, #20233a, #181a28)' }}
+        >
+          <span className="text-[10px] tracking-[0.12em] text-accent">STREAK</span>
+          <span className="text-[34px] font-medium leading-[1.1] tabular-nums">{streak?.current ?? 0}</span>
+          <span className="text-[11.5px] text-neutral-500">days · best {streak?.longest ?? 0}</span>
+        </div>
+        <StatCard kicker="TOTAL REPS" kickerAccent={false} value={totalReps.toLocaleString()} caption="since start" />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="p-4 rounded-xl bg-bg-card text-center">
-          <TargetIcon size={20} className="mx-auto mb-1" />
-          <div className="text-lg font-bold">{weekStats.completionRate}%</div>
-          <div className="text-text-muted text-[10px]">Completion</div>
+      <div className="p-[15px] rounded-[15px] bg-surface shadow-sm flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium">This week</span>
+          <div className="flex gap-2.5 text-[10.5px] text-neutral-500">
+            <span className="flex items-center gap-1"><i className="w-1.75 h-1.75 rounded-sm bg-[#9184d9] block" />Push</span>
+            <span className="flex items-center gap-1"><i className="w-1.75 h-1.75 rounded-sm bg-[#b5abfc] block" />Pull</span>
+            <span className="flex items-center gap-1"><i className="w-1.75 h-1.75 rounded-sm bg-[#5d5294] block" />Squat</span>
+          </div>
         </div>
-        <div className="p-4 rounded-xl bg-bg-card text-center">
-          <FlameIcon size={20} className="mx-auto mb-1" />
-          <div className="text-lg font-bold">{streak.current}</div>
-          <div className="text-text-muted text-[10px]">Day Streak</div>
-        </div>
-        <div className="p-4 rounded-xl bg-bg-card text-center">
-          <TrendingUpIcon size={20} className="mx-auto mb-1" />
-          <div className="text-lg font-bold">{weekStats.totalReps}</div>
-          <div className="text-text-muted text-[10px]">Total Reps</div>
-        </div>
-      </div>
-
-      {/* Weekly grouped bar chart */}
-      <h2 className="text-lg font-semibold mb-3">Weekly Volume</h2>
-      <div className="rounded-2xl bg-bg-card p-4 mb-6">
-        <div className="flex items-end justify-between gap-2 h-32 mb-2">
-          {weekBars.map(bar => (
-            <div key={bar.date} className="flex-1 flex items-end justify-center gap-0.5 h-full">
-              {(['pushups', 'pullups', 'squats'] as Exercise[]).map(ex => (
-                <div
-                  key={ex}
-                  className="flex-1 rounded-t-sm transition-all duration-500"
-                  style={{
-                    height: `${Math.max(2, (bar.reps[ex] / maxBarValue) * 100)}%`,
-                    backgroundColor: EXERCISE_COLORS[ex],
-                    opacity: bar.date === today ? 1 : 0.75,
-                  }}
-                />
-              ))}
+        <div className="flex items-end justify-between gap-2 h-28">
+          {WEEK_BARS.map((day, i) => (
+            <div key={i} className="flex-1 flex items-end gap-0.5 h-full">
+              <i style={{ height: `${day[0]}%`, background: '#9184d9' }} className="flex-1 rounded-sm block" />
+              <i style={{ height: `${day[1]}%`, background: '#b5abfc' }} className="flex-1 rounded-sm block" />
+              <i style={{ height: `${day[2]}%`, background: '#5d5294' }} className="flex-1 rounded-sm block" />
             </div>
           ))}
         </div>
-        <div className="flex justify-between">
-          {weekBars.map(bar => (
-            <span key={bar.date} className={`flex-1 text-center text-[10px] ${bar.date === today ? 'text-purple-light font-semibold' : 'text-text-muted'}`}>
-              {bar.label}
+        <div className="flex justify-between text-[10px] text-neutral-600">
+          {DAY_LABELS.map((d, i) => <span key={i}>{d}</span>)}
+        </div>
+      </div>
+
+      <div className="p-[15px] rounded-[15px] bg-surface shadow-sm flex flex-col gap-2.75">
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium">Last 4 weeks</span>
+          <span className="text-[11px] text-neutral-500">86% complete</span>
+        </div>
+        <div className="grid grid-cols-7 gap-1.5">
+          {CAL_LEVELS.map((lvl, i) => (
+            <span
+              key={i}
+              style={{ background: CAL_BG[lvl], color: lvl >= 2 ? '#f5f4ff' : '#75798c' }}
+              className="aspect-square rounded-[7px] grid place-items-center text-[10px] tabular-nums"
+            >
+              {i + 1}
             </span>
           ))}
         </div>
-        <div className="flex items-center justify-center gap-4 mt-4">
-          {(['pushups', 'pullups', 'squats'] as Exercise[]).map(ex => (
-            <div key={ex} className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: EXERCISE_COLORS[ex] }} />
-              <span className="text-[10px] text-text-muted">{EXERCISE_LABELS[ex]}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* Streak card */}
-      <div className="flex items-center gap-4 p-5 rounded-2xl bg-bg-card border-2 border-border mb-6">
-        <FlameIcon size={40} />
-        <div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{streak.current}</span>
-            <span className="text-text-secondary text-sm">Day Streak</span>
+      <div className="flex flex-col gap-2">
+        <span className="text-[11px] tracking-[0.1em] text-neutral-500">PERSONAL BESTS</span>
+        {PBS.map((p) => (
+          <div key={p.name} className="flex items-center gap-2.75 px-3.25 py-3 rounded-xl bg-surface">
+            <IconChip bg={p.chip} size={30}>{p.icon}</IconChip>
+            <span className="flex-1 text-[13.5px]">{p.name}</span>
+            <span className="text-sm font-medium tabular-nums">{p.val}</span>
+            <span className="text-[10.5px] text-accent">{p.delta}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-text-muted text-xs mt-1">
-            <TrophyIcon size={14} />
-            Best: {streak.longest} days
-          </div>
-        </div>
-      </div>
-
-      {/* Calendar Heatmap */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold">{currentMonth} {currentYear}</h2>
-        <div className="flex items-center gap-1 text-text-muted">
-          <ChevronLeftIcon size={16} />
-          <ChevronRightIcon size={16} />
-        </div>
-      </div>
-      <div className="rounded-2xl bg-bg-card p-4 mb-6">
-        <div className="grid grid-cols-7 gap-2 text-center text-xs text-text-muted mb-2">
-          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-            <span key={i}>{d}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {(() => {
-            const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay();
-            const offset = (firstDay + 6) % 7;
-            const blanks = Array.from({ length: offset }, (_, i) => (
-              <div key={`blank-${i}`} />
-            ));
-            const days = monthCalendar.map(({ date, dayNum }) => {
-              const isComplete = completedDates.has(date);
-              const isToday = date === today;
-              return (
-                <div
-                  key={date}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium mx-auto ${
-                    isComplete
-                      ? 'bg-green-accent text-white'
-                      : isToday
-                        ? 'bg-purple-accent/30 text-purple-light border border-purple-accent'
-                        : date < today
-                          ? 'bg-bg-primary text-text-muted'
-                          : 'text-text-muted'
-                  }`}
-                >
-                  {dayNum}
-                </div>
-              );
-            });
-            return [...blanks, ...days];
-          })()}
-        </div>
-        <div className="flex items-center justify-center gap-2 text-text-muted text-xs mt-4">
-          <FlameIcon size={16} />
-          <span>Don't break the chain! You've got this!</span>
-        </div>
+        ))}
       </div>
     </div>
   );

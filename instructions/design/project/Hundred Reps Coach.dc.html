@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/nocturne-1a87b9da-a510-4c70-ab11-934f76c8027b/styles.css">
+<script src="_ds/nocturne-1a87b9da-a510-4c70-ab11-934f76c8027b/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#0e1018;font-family:"Inter",system-ui,sans-serif}
+::-webkit-scrollbar{width:0;height:0}
+a{color:var(--color-accent)}a:hover{color:var(--color-accent-400)}
+@keyframes hpulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.06);opacity:1}}
+@keyframes hrise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="display:flex;align-items:stretch;min-height:100vh;background:#0e1018;color:var(--color-text)">
+
+  <aside style="width:236px;flex:none;padding:26px 18px;border-right:1px solid rgba(233,233,237,.08);display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <div style="font-size:15px;font-weight:600;letter-spacing:.12em">HUNDRED</div>
+      <div style="font-size:11px;color:var(--color-neutral-500)">Screen reference · v1</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <sc-for list="{{ screens }}" as="s" hint-placeholder-count="11">
+        <div onClick="{{ s.go }}" style="display:flex;align-items:baseline;gap:9px;padding:7px 9px;border-radius:8px;cursor:pointer;font-size:12.5px;background:{{ s.bg }};color:{{ s.fg }}" style-hover="background:rgba(233,233,237,.06)">
+          <span style="font-size:10px;font-variant-numeric:tabular-nums;color:var(--color-neutral-600);width:14px;flex:none">{{ s.num }}</span>
+          <span>{{ s.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:auto;font-size:11px;line-height:1.5;color:var(--color-neutral-600)">Offline-first · free forever. Sync, reminders and squad ship after v1.</div>
+  </aside>
+
+  <main style="flex:1;display:flex;align-items:flex-start;justify-content:center;gap:34px;padding:40px 34px">
+
+    <div style="width:390px;height:844px;flex:none;position:relative;border-radius:46px;padding:11px;background:linear-gradient(160deg,#2b2e3d,#15171f);box-shadow:0 26px 70px rgba(0,0,0,.7)">
+      <div style="width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--color-bg);display:flex;flex-direction:column;position:relative">
+
+        <div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 24px 6px;font-size:12.5px;font-weight:600;color:var(--color-text)">
+          <span>9:41</span>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="display:block;width:16px;height:9px;border-radius:2px;border:1px solid rgba(233,233,237,.6)"></span>
+            <span style="display:block;width:22px;height:10px;border-radius:3px;border:1px solid rgba(233,233,237,.6);position:relative"><i style="position:absolute;inset:1.5px;right:6px;background:var(--color-text);border-radius:1px;display:block"></i></span>
+          </div>
+        </div>
+
+        <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+
+          <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:34px 26px 26px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:11px;letter-spacing:.22em;color:var(--color-accent);font-weight:600">HUNDRED</div>
+                <div style="font-size:38px;line-height:1.04;font-weight:500;letter-spacing:-.03em;text-wrap:pretty">Three hundred reps a day.<br>Cut into pieces you'll<br>actually do.</div>
+                <div style="font-size:14px;line-height:1.55;color:var(--color-neutral-400);max-width:290px">100 push-ups, 100 pull-ups, 100 squats, spread across your day, counted out loud, one honest rep at a time.</div>
+              </div>
+              <div style="flex:1;min-height:36px;position:relative;margin:26px 0 6px;border-radius:16px;overflow:hidden;background:linear-gradient(150deg,#1d2033,#161826 62%);box-shadow:var(--shadow-sm);display:flex;align-items:flex-end;padding:16px">
+                <div style="position:absolute;top:-40px;right:-30px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(145,132,217,.30),transparent 65%)"></div>
+                <div style="display:flex;align-items:flex-end;gap:5px;height:100%;width:100%">
+                  <div style="flex:1;height:14%;border-radius:3px;background:var(--color-accent-800)"></div>
+                  <div style="flex:1;height:20%;border-radius:3px;background:var(--color-accent-800)"></div>
+                  <div style="flex:1;height:29%;border-radius:3px;background:var(--color-accent-700)"></div>
+                  <div style="flex:1;height:36%;border-radius:3px;background:var(--color-accent-700)"></div>
+                  <div style="flex:1;height:47%;border-radius:3px;background:var(--color-accent-600)"></div>
+                  <div style="flex:1;height:58%;border-radius:3px;background:var(--color-accent-600)"></div>
+                  <div style="flex:1;height:71%;border-radius:3px;background:var(--color-accent-500)"></div>
+                  <div style="flex:1;height:86%;border-radius:3px;background:var(--color-accent-400)"></div>
+                  <div style="flex:1;height:100%;border-radius:3px;background:var(--color-accent)"></div>
+                </div>
+                <div style="position:absolute;left:16px;top:14px;font-size:11px;letter-spacing:.08em;color:var(--color-neutral-500)">3 REPS &nbsp;→&nbsp; 100 REPS · 12 WEEKS</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-top:14px">
+                <button class="btn btn-primary btn-block" onClick="{{ goBaseline }}" style="height:48px;font-size:15px">Find my starting point</button>
+                <button class="btn btn-secondary btn-block" onClick="{{ goToday }}" style="height:44px">I already train, skip ahead</button>
+                <div style="display:flex;justify-content:center;gap:8px;margin-top:6px">
+                  <span class="tag tag-neutral">Free forever</span>
+                  <span class="tag tag-neutral">Works offline</span>
+                  <span class="tag tag-neutral">No account needed</span>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isBaseline }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:16px 22px 24px;gap:16px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <button class="btn btn-icon btn-secondary" onClick="{{ goWelcome }}" style="flex:none">←</button>
+                <div style="flex:1;height:3px;border-radius:2px;background:rgba(233,233,237,.12);overflow:hidden"><i style="display:block;height:100%;width:33%;background:var(--color-accent)"></i></div>
+                <span style="font-size:11px;color:var(--color-neutral-500);flex:none">1 of 3</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:27px;font-weight:500;letter-spacing:-.02em">Let's find your floor</div>
+                <div style="font-size:13.5px;line-height:1.5;color:var(--color-neutral-400)">One honest max set each. Three push-ups is a completely fine answer. The plan is built from wherever you actually are.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ tests }}" as="t" hint-placeholder-count="3">
+                  <div onClick="{{ t.go }}" style="display:flex;align-items:center;gap:13px;padding:14px;border-radius:14px;background:var(--color-surface);box-shadow:var(--shadow-sm);cursor:pointer" style-hover="background:#282a38">
+                    <span style="width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px;background:{{ t.chip }};color:{{ t.chipFg }}">{{ t.icon }}</span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:15px;font-weight:500">{{ t.name }}</span>
+                      <span style="font-size:11.5px;color:var(--color-neutral-500)">{{ t.sub }}</span>
+                    </span>
+                    <span style="font-size:12px;color:{{ t.valFg }};font-variant-numeric:tabular-nums">{{ t.val }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:12px 14px;border-radius:12px;background:var(--color-accent-900);display:flex;gap:10px;align-items:flex-start">
+                <span style="font-size:14px;line-height:1.2">◎</span>
+                <span style="font-size:12px;line-height:1.5;color:var(--color-accent-200)">Can't do a pull-up yet? Say zero. You'll start on rows and negatives and we'll ladder you up to the bar.</span>
+              </div>
+              <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-primary btn-block" onClick="{{ goBar }}" style="height:48px;font-size:15px">{{ baselineCta }}</button>
+                <button class="btn btn-ghost btn-block" onClick="{{ goBar }}">I'll type my numbers instead</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isBar }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:16px 22px 24px;gap:16px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <button class="btn btn-icon btn-secondary" onClick="{{ goBaseline }}" style="flex:none">←</button>
+                <div style="flex:1;height:3px;border-radius:2px;background:rgba(233,233,237,.12);overflow:hidden"><i style="display:block;height:100%;width:66%;background:var(--color-accent)"></i></div>
+                <span style="font-size:11px;color:var(--color-neutral-500);flex:none">2 of 3</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:27px;font-weight:500;letter-spacing:-.02em">Do you have a bar?</div>
+                <div style="font-size:13.5px;line-height:1.5;color:var(--color-neutral-400)">This only changes the pull-up half. Everything else is floor and gravity.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ barOpts }}" as="b" hint-placeholder-count="3">
+                  <div onClick="{{ b.go }}" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--color-surface);cursor:pointer;box-shadow:{{ b.ring }}">
+                    <span style="width:16px;height:16px;flex:none;border-radius:50%;border:1.5px solid {{ b.dotBorder }};background:{{ b.dotBg }};box-shadow:{{ b.dotInner }}"></span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:14.5px;font-weight:500">{{ b.name }}</span>
+                      <span style="font-size:11.5px;color:var(--color-neutral-500)">{{ b.sub }}</span>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:15px;border-radius:14px;background:linear-gradient(150deg,#1d2033,#161826);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:11px">
+                <div style="font-size:10px;letter-spacing:.12em;color:var(--color-accent)">YOUR PULL-UP PATH</div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <sc-for list="{{ pullPath }}" as="p" hint-placeholder-count="5">
+                    <span style="flex:1;display:flex;flex-direction:column;gap:5px">
+                      <span style="height:4px;border-radius:2px;background:{{ p.bar }};display:block"></span>
+                      <span style="font-size:9.5px;line-height:1.25;color:{{ p.fg }}">{{ p.name }}</span>
+                    </span>
+                  </sc-for>
+                </div>
+                <div style="font-size:12px;line-height:1.5;color:var(--color-neutral-400)">You're on <strong style="color:var(--color-text);font-weight:500">band-assisted</strong>. Clear 8 clean reps in a set and the coach moves you up a rung.</div>
+              </div>
+              <div style="margin-top:auto"><button class="btn btn-primary btn-block" onClick="{{ goSchedule }}" style="height:48px;font-size:15px">Next: pick my windows</button></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSchedule }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:16px 22px 24px;gap:15px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <button class="btn btn-icon btn-secondary" onClick="{{ goBar }}" style="flex:none">←</button>
+                <div style="flex:1;height:3px;border-radius:2px;background:rgba(233,233,237,.12);overflow:hidden"><i style="display:block;height:100%;width:100%;background:var(--color-accent)"></i></div>
+                <span style="font-size:11px;color:var(--color-neutral-500);flex:none">3 of 3</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:27px;font-weight:500;letter-spacing:-.02em">Here's the day we'd build</div>
+                <div style="font-size:13.5px;line-height:1.5;color:var(--color-neutral-400)">Four short windows, none longer than six minutes. Drag any of them and the coach reflows the rest.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ proposal }}" as="w" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:13px;background:var(--color-surface);box-shadow:var(--shadow-sm)">
+                    <span style="font-size:13px;font-variant-numeric:tabular-nums;font-weight:500;width:52px;flex:none">{{ w.time }}</span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:2px">
+                      <span style="font-size:13px">{{ w.body }}</span>
+                      <span style="font-size:11px;color:var(--color-neutral-500)">{{ w.len }}</span>
+                    </span>
+                    <span style="width:22px;height:22px;flex:none;display:grid;place-items:center;color:var(--color-neutral-600);font-size:13px;cursor:grab">⠿</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:13px;background:var(--color-surface);box-shadow:var(--shadow-sm)">
+                <span style="flex:1;display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:13.5px;font-weight:500">Let the coach re-shuffle</span>
+                  <span style="font-size:11.5px;color:var(--color-neutral-500)">Miss a window and the reps move, not vanish.</span>
+                </span>
+                <span onClick="{{ toggleReflow }}" style="width:44px;height:26px;flex:none;border-radius:13px;padding:3px;cursor:pointer;background:{{ reflowTrack }};display:flex;justify-content:{{ reflowAlign }};transition:background .18s">
+                  <i style="width:20px;height:20px;border-radius:50%;background:var(--color-text);display:block"></i>
+                </span>
+              </div>
+              <div style="margin-top:auto"><button class="btn btn-primary btn-block" onClick="{{ goPlan }}" style="height:48px;font-size:15px">Build my plan</button></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:22px 22px 24px;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:10px;letter-spacing:.14em;color:var(--color-accent)">YOUR PLAN · 84 DAYS</div>
+                <div style="font-size:27px;font-weight:500;letter-spacing:-.02em">From 8 to 100</div>
+                <div style="font-size:13.5px;line-height:1.5;color:var(--color-neutral-400)">Ladders twice a week, everything else at a percentage of your max. It goes up about 8% a week, slow enough that you keep showing up.</div>
+              </div>
+              <div style="padding:16px 14px 12px;border-radius:14px;background:linear-gradient(150deg,#1d2033,#161826);box-shadow:var(--shadow-sm)">
+                <svg viewBox="0 0 300 110" style="width:100%;height:110px;display:block;overflow:visible">
+                  <defs><linearGradient id="hgrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#9184d9" stop-opacity="0"/><stop offset="1" stop-color="#9184d9" stop-opacity=".35"/></linearGradient></defs>
+                  <path d="M4 100 L54 92 L104 78 L154 60 L204 40 L254 20 L296 6 L296 106 L4 106 Z" fill="url(#hgrad)"/>
+                  <path d="M4 100 L54 92 L104 78 L154 60 L204 40 L254 20 L296 6" fill="none" stroke="#9184d9" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="4" cy="100" r="4" fill="#9184d9"/><circle cx="296" cy="6" r="4" fill="#e9e9ed"/>
+                  <text x="4" y="112" fill="#75798c" font-size="9" font-family="Inter">Day 1 · 24 reps</text>
+                  <text x="296" y="112" fill="#75798c" font-size="9" font-family="Inter" text-anchor="end">Day 84 · 100 reps</text>
+                </svg>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ planRows }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:13px;background:var(--color-surface);box-shadow:var(--shadow-sm)">
+                    <span style="width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:15px;background:{{ r.chip }}">{{ r.icon }}</span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:14.5px;font-weight:500">{{ r.name }}</span>
+                      <span style="font-size:11.5px;color:var(--color-neutral-500)">{{ r.sub }}</span>
+                    </span>
+                    <span style="text-align:right;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:16px;font-weight:500;font-variant-numeric:tabular-nums">{{ r.today }}</span>
+                      <span style="font-size:10px;color:var(--color-neutral-600)">day 1 total</span>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:auto"><button class="btn btn-primary btn-block" onClick="{{ goToday }}" style="height:48px;font-size:15px">Start day 1</button></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:14px 20px 96px;gap:15px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <div style="font-size:22px;font-weight:500;letter-spacing:-.02em">Morning, {{ userName }}</div>
+                  <div style="font-size:12.5px;color:var(--color-neutral-500)">Day 12 · {{ remainingLine }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:var(--color-accent-900);color:var(--color-accent-200);font-size:12px;font-weight:500;flex:none">
+                  <span style="font-size:12px">▲</span><span>12</span>
+                </div>
+              </div>
+
+              <sc-if value="{{ dashRings }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:10px">
+                  <sc-for list="{{ rings }}" as="g" hint-placeholder-count="3">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 6px;border-radius:14px;background:var(--color-surface);box-shadow:var(--shadow-sm)">
+                      <svg viewBox="0 0 84 84" style="width:74px;height:74px;display:block;transform:rotate(-90deg)">
+                        <circle cx="42" cy="42" r="34" fill="none" stroke="rgba(233,233,237,.10)" stroke-width="7"/>
+                        <circle cx="42" cy="42" r="34" fill="none" stroke="{{ g.stroke }}" stroke-width="7" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="{{ g.offset }}"/>
+                      </svg>
+                      <div style="position:relative;margin-top:-52px;height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                        <span style="font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1">{{ g.done }}</span>
+                        <span style="font-size:9.5px;color:var(--color-neutral-600)">/ {{ g.target }}</span>
+                      </div>
+                      <span style="font-size:11px;color:var(--color-neutral-400);margin-top:14px">{{ g.name }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ dashFuel }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:11px;padding:15px;border-radius:16px;background:var(--color-surface);box-shadow:var(--shadow-sm)">
+                  <sc-for list="{{ rings }}" as="g" hint-placeholder-count="3">
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div style="display:flex;align-items:baseline;justify-content:space-between">
+                        <span style="font-size:12.5px;color:var(--color-neutral-300)">{{ g.name }}</span>
+                        <span style="font-size:12px;font-variant-numeric:tabular-nums;color:var(--color-neutral-500)">{{ g.done }} / {{ g.target }}</span>
+                      </div>
+                      <div style="height:9px;border-radius:5px;background:rgba(233,233,237,.09);overflow:hidden;display:flex">
+                        <i style="display:block;height:100%;border-radius:5px;background:{{ g.stroke }};width:{{ g.pct }}%;transition:width .5s"></i>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="font-size:11.5px;color:var(--color-neutral-500);margin-top:2px">{{ remainingLine }}</div>
+                </div>
+              </sc-if>
+
+              <div style="display:flex;flex-direction:column;gap:11px;padding:16px;border-radius:16px;background:linear-gradient(150deg,#20233a,#181a28);box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
+                <div style="position:absolute;top:-60px;right:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(145,132,217,.22),transparent 68%)"></div>
+                <div style="font-size:10px;letter-spacing:.12em;color:var(--color-accent)">UP NEXT · 12:30</div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+                  <div style="display:flex;flex-direction:column;gap:3px">
+                    <div style="font-size:21px;font-weight:500;letter-spacing:-.02em">{{ nextTitle }}</div>
+                    <div style="font-size:12.5px;color:var(--color-neutral-400)">{{ nextSub }}</div>
+                  </div>
+                  <button class="btn btn-primary" onClick="{{ startNext }}" style="height:44px;padding:0 20px;font-size:14.5px;flex:none">Start</button>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <span style="font-size:11px;letter-spacing:.1em;color:var(--color-neutral-500)">TODAY'S WINDOWS</span>
+                  <span style="font-size:11.5px;color:var(--color-accent)">Reflow</span>
+                </div>
+                <sc-for list="{{ windows }}" as="w" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:stretch;gap:12px">
+                    <div style="width:42px;flex:none;text-align:right;font-size:11px;font-variant-numeric:tabular-nums;color:var(--color-neutral-500);padding-top:14px">{{ w.time }}</div>
+                    <div style="width:14px;flex:none;display:flex;flex-direction:column;align-items:center;gap:0">
+                      <span style="width:2px;flex:1;background:rgba(233,233,237,.10);display:block"></span>
+                      <span style="width:11px;height:11px;border-radius:50%;flex:none;background:{{ w.dot }};box-shadow:{{ w.dotRing }}"></span>
+                      <span style="width:2px;flex:1;background:rgba(233,233,237,.10);display:block"></span>
+                    </div>
+                    <div style="flex:1;display:flex;align-items:center;gap:10px;padding:11px 13px;margin:4px 0;border-radius:12px;background:var(--color-surface);opacity:{{ w.op }}">
+                      <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13.5px;font-weight:500">{{ w.name }}</span>
+                        <span style="font-size:11px;color:var(--color-neutral-500)">{{ w.sub }}</span>
+                      </span>
+                      <sc-if value="{{ w.actionable }}" hint-placeholder-val="{{ true }}">
+                        <button class="btn btn-secondary" onClick="{{ w.go }}" style="height:30px;padding:0 12px;font-size:12px;flex:none">Start</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;gap:10px;align-items:center;padding:13px 14px;border-radius:13px;background:var(--color-accent-900)">
+                <span style="font-size:15px">✦</span>
+                <span style="font-size:12.5px;line-height:1.5;color:var(--color-accent-200)">{{ nudge }}</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSession }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:12px 20px 22px;gap:12px;background:radial-gradient(120% 60% at 50% 8%,#1c1f30,#161826 70%)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <button class="btn btn-icon btn-secondary" onClick="{{ goToday }}" style="flex:none">←</button>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+                  <span style="font-size:14.5px;font-weight:500">{{ sesName }}</span>
+                  <span style="font-size:11px;color:var(--color-neutral-500)">{{ sesLadder }}</span>
+                </div>
+                <div style="display:flex;gap:6px;flex:none">
+                  <span onClick="{{ toggleVoice }}" style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:14px;cursor:pointer;background:{{ voiceBg }};color:{{ voiceFg }}">◗</span>
+                </div>
+              </div>
+
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:280px">
+
+                <sc-if value="{{ ctrNumeral }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ tapRep }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;user-select:none">
+                    <div style="font-size:132px;line-height:.9;font-weight:500;letter-spacing:-.05em;font-variant-numeric:tabular-nums">{{ sesCount }}</div>
+                    <div style="font-size:12px;letter-spacing:.28em;color:var(--color-neutral-500)">REPS</div>
+                    <div style="margin-top:12px;font-size:22px;font-weight:500;letter-spacing:.1em;color:{{ cueFg }};transition:color .12s">{{ cue }}</div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ ctrRing }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ tapRep }}" style="position:relative;width:250px;height:250px;cursor:pointer;user-select:none;display:grid;place-items:center">
+                    <div style="position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle,rgba(145,132,217,.20),transparent 70%);animation:hpulse {{ pulseDur }} ease-in-out infinite"></div>
+                    <svg viewBox="0 0 250 250" style="position:absolute;inset:0;width:250px;height:250px;transform:rotate(-90deg)">
+                      <circle cx="125" cy="125" r="112" fill="none" stroke="rgba(233,233,237,.09)" stroke-width="10"/>
+                      <circle cx="125" cy="125" r="112" fill="none" stroke="#9184d9" stroke-width="10" stroke-linecap="round" stroke-dasharray="703.7" stroke-dashoffset="{{ sesOffset }}" style="transition:stroke-dashoffset .3s"/>
+                    </svg>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;z-index:1">
+                      <div style="font-size:82px;line-height:.95;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums">{{ sesCount }}</div>
+                      <div style="font-size:11px;letter-spacing:.2em;color:var(--color-neutral-500)">OF {{ sesTarget }}</div>
+                      <div style="margin-top:10px;font-size:17px;font-weight:500;letter-spacing:.1em;color:{{ cueFg }}">{{ cue }}</div>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ ctrLane }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ tapRep }}" style="display:flex;align-items:center;gap:20px;cursor:pointer;user-select:none">
+                    <div style="display:flex;flex-direction:column-reverse;gap:4px;height:300px;justify-content:flex-start">
+                      <sc-for list="{{ pips }}" as="p" hint-placeholder-count="12">
+                        <span style="width:52px;height:{{ p.h }}px;border-radius:4px;background:{{ p.bg }};display:block;transition:background .2s"></span>
+                      </sc-for>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                      <div style="font-size:70px;line-height:.95;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums">{{ sesCount }}</div>
+                      <div style="font-size:11px;letter-spacing:.2em;color:var(--color-neutral-500)">OF {{ sesTarget }} REPS</div>
+                      <div style="margin-top:10px;font-size:17px;font-weight:500;letter-spacing:.1em;color:{{ cueFg }}">{{ cue }}</div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <span style="font-size:11px;letter-spacing:.1em;color:var(--color-neutral-500)">TEMPO</span>
+                  <span style="font-size:12px;font-variant-numeric:tabular-nums;color:var(--color-neutral-300)">{{ tempoLabel }}</span>
+                </div>
+                <input class="input" type="range" min="1" max="4" step="0.25" value="{{ tempo }}" onInput="{{ setTempo }}" style="width:100%;min-height:26px;padding:0;background:transparent;border:0;accent-color:#9184d9">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-neutral-600)"><span>1.0 explosive</span><span>2.0 standard</span><span>4.0 grind</span></div>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:center;gap:16px">
+                <button class="btn btn-secondary" onClick="{{ decRep }}" style="width:52px;height:52px;border-radius:50%;font-size:20px;flex:none">−</button>
+                <button class="btn btn-primary" onClick="{{ toggleRun }}" style="width:78px;height:78px;border-radius:50%;font-size:24px;flex:none">{{ runIcon }}</button>
+                <button class="btn btn-secondary" onClick="{{ tapRep }}" style="width:52px;height:52px;border-radius:50%;font-size:20px;flex:none">+</button>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+                  <span onClick="{{ m.go }}" style="flex:1;text-align:center;padding:9px 4px;border-radius:10px;font-size:11.5px;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};box-shadow:{{ m.ring }}">{{ m.name }}</span>
+                </sc-for>
+              </div>
+              <button class="btn btn-ghost btn-block" onClick="{{ endSet }}" style="height:38px">End set, bank {{ sesCount }} reps</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isDone }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 24px;gap:16px;text-align:center;animation:hrise .3s ease-out">
+              <div style="width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:var(--color-accent-900);box-shadow:0 0 0 12px rgba(145,132,217,.08)">
+                <span style="font-size:42px;color:var(--color-accent);line-height:1">✓</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:28px;font-weight:500;letter-spacing:-.02em">{{ doneReps }} reps banked</div>
+                <div style="font-size:13.5px;line-height:1.5;color:var(--color-neutral-400);max-width:280px">{{ doneLine }}</div>
+              </div>
+              <div style="width:100%;display:flex;gap:9px">
+                <sc-for list="{{ rings }}" as="g" hint-placeholder-count="3">
+                  <div style="flex:1;display:flex;flex-direction:column;gap:6px;padding:12px 10px;border-radius:13px;background:var(--color-surface);align-items:flex-start">
+                    <span style="font-size:11px;color:var(--color-neutral-500)">{{ g.name }}</span>
+                    <span style="font-size:17px;font-weight:500;font-variant-numeric:tabular-nums">{{ g.done }}<span style="font-size:11px;color:var(--color-neutral-600)"> / {{ g.target }}</span></span>
+                    <span style="height:5px;width:100%;border-radius:3px;background:rgba(233,233,237,.09);display:block;overflow:hidden"><i style="display:block;height:100%;background:{{ g.stroke }};width:{{ g.pct }}%"></i></span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:100%;display:flex;flex-direction:column;gap:9px;margin-top:4px">
+                <button class="btn btn-primary btn-block" onClick="{{ goToday }}" style="height:48px;font-size:15px">Back to today</button>
+                <button class="btn btn-secondary btn-block" onClick="{{ startNext }}" style="height:44px">One more set</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isProgress }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:16px 20px 96px;gap:15px">
+              <div style="font-size:22px;font-weight:500;letter-spacing:-.02em">Progress</div>
+              <div style="display:flex;gap:10px;align-items:stretch">
+                <div style="flex:1;padding:15px;border-radius:15px;background:linear-gradient(150deg,#20233a,#181a28);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:10px;letter-spacing:.12em;color:var(--color-accent)">STREAK</span>
+                  <span style="font-size:34px;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums">12</span>
+                  <span style="font-size:11.5px;color:var(--color-neutral-500)">days · best 28</span>
+                </div>
+                <div style="flex:1;padding:15px;border-radius:15px;background:var(--color-surface);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:10px;letter-spacing:.12em;color:var(--color-neutral-500)">TOTAL REPS</span>
+                  <span style="font-size:34px;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums">9,412</span>
+                  <span style="font-size:11.5px;color:var(--color-neutral-500)">since May 12</span>
+                </div>
+              </div>
+              <div style="padding:15px;border-radius:15px;background:var(--color-surface);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span style="font-size:13px;font-weight:500">This week</span>
+                  <div style="display:flex;gap:10px;font-size:10.5px;color:var(--color-neutral-500)">
+                    <span style="display:flex;align-items:center;gap:4px"><i style="width:7px;height:7px;border-radius:2px;background:#9184d9;display:block"></i>Push</span>
+                    <span style="display:flex;align-items:center;gap:4px"><i style="width:7px;height:7px;border-radius:2px;background:#b5abfc;display:block"></i>Pull</span>
+                    <span style="display:flex;align-items:center;gap:4px"><i style="width:7px;height:7px;border-radius:2px;background:#5d5294;display:block"></i>Squat</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;height:112px">
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:54%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:32%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:61%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:68%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:44%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:72%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:41%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:25%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:48%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:79%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:52%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:83%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:88%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:60%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:91%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:36%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:20%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:40%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                  <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:100%"><i style="flex:1;height:46%;background:#9184d9;border-radius:2px;display:block"></i><i style="flex:1;height:29%;background:#b5abfc;border-radius:2px;display:block"></i><i style="flex:1;height:44%;background:#5d5294;border-radius:2px;display:block"></i></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-neutral-600)"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+              </div>
+              <div style="padding:15px;border-radius:15px;background:var(--color-surface);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:11px">
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:500">Last 4 weeks</span><span style="font-size:11px;color:var(--color-neutral-500)">86% complete</span></div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+                  <sc-for list="{{ calendar }}" as="d" hint-placeholder-count="28">
+                    <span style="aspect-ratio:1;border-radius:7px;display:grid;place-items:center;font-size:10px;font-variant-numeric:tabular-nums;background:{{ d.bg }};color:{{ d.fg }}">{{ d.n }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <span style="font-size:11px;letter-spacing:.1em;color:var(--color-neutral-500)">PERSONAL BESTS</span>
+                <sc-for list="{{ pbs }}" as="p" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:12px;background:var(--color-surface)">
+                    <span style="width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:14px;background:{{ p.chip }}">{{ p.icon }}</span>
+                    <span style="flex:1;font-size:13.5px">{{ p.name }}</span>
+                    <span style="font-size:14px;font-weight:500;font-variant-numeric:tabular-nums">{{ p.val }}</span>
+                    <span style="font-size:10.5px;color:var(--color-accent)">{{ p.delta }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:16px 20px 96px;gap:15px">
+              <div style="display:flex;align-items:center;gap:13px">
+                <span style="width:52px;height:52px;flex:none;border-radius:16px;background:var(--color-accent-800);display:grid;place-items:center;font-size:19px;font-weight:500;color:var(--color-accent-100)">{{ initial }}</span>
+                <sc-if value="{{ notEditingName }}" hint-placeholder-val="{{ true }}">
+                  <span style="flex:1;display:flex;align-items:center;gap:10px">
+                    <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:17px;font-weight:500">{{ userName }}</span>
+                      <span style="font-size:11.5px;color:var(--color-neutral-500)">Day 12 · this phone only</span>
+                    </span>
+                    <button class="btn btn-secondary" onClick="{{ editName }}" style="height:34px;padding:0 14px;font-size:12.5px;flex:none">Edit</button>
+                  </span>
+                </sc-if>
+                <sc-if value="{{ editingName }}" hint-placeholder-val="{{ false }}">
+                  <span style="flex:1;display:flex;flex-direction:column;gap:7px">
+                    <span style="display:flex;align-items:center;gap:8px">
+                      <input class="input" value="{{ nameDraft }}" onInput="{{ setNameDraft }}" onKeyDown="{{ nameKey }}" placeholder="Your name" maxlength="24" style="flex:1;height:38px">
+                      <button class="btn btn-primary" onClick="{{ saveName }}" style="height:38px;padding:0 15px;flex:none">Save</button>
+                    </span>
+                    <span style="font-size:11px;color:var(--color-neutral-600)">Stays on this phone. Used in greetings and, later, in Squad.</span>
+                  </span>
+                </sc-if>
+              </div>
+              <div style="padding:14px;border-radius:14px;background:var(--color-accent-900);display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <span style="font-size:14px;color:var(--color-accent)">☁</span>
+                  <span style="font-size:13.5px;font-weight:500;color:var(--color-accent-100)">Accounts &amp; sync: coming soon</span>
+                </div>
+                <div style="font-size:12px;line-height:1.5;color:var(--color-accent-200)">Everything lives on your device today, no sign-up, no upload. When sync lands, your history merges into the account. Nothing to re-enter.</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:3px">
+                  <span style="font-size:12px;color:var(--color-accent-200)">Ping me when it's ready</span>
+                  <span onClick="{{ toggleWait }}" style="width:44px;height:26px;flex:none;border-radius:13px;padding:3px;cursor:pointer;background:{{ waitTrack }};display:flex;justify-content:{{ waitAlign }};transition:background .18s"><i style="width:20px;height:20px;border-radius:50%;background:var(--color-text);display:block"></i></span>
+                </div>
+              </div>
+              <sc-for list="{{ settingGroups }}" as="grp" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <span style="font-size:11px;letter-spacing:.1em;color:var(--color-neutral-500)">{{ grp.name }}</span>
+                  <div style="border-radius:14px;background:var(--color-surface);box-shadow:var(--shadow-sm);overflow:hidden">
+                    <sc-for list="{{ grp.rows }}" as="r" hint-placeholder-count="4">
+                      <div style="display:flex;align-items:center;gap:11px;padding:13px 14px;border-top:1px solid {{ r.sep }}">
+                        <span style="width:22px;flex:none;text-align:center;font-size:13px;color:var(--color-neutral-400)">{{ r.icon }}</span>
+                        <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                          <span style="font-size:13.5px">{{ r.name }}</span>
+                          <span style="font-size:11px;color:var(--color-neutral-600)">{{ r.sub }}</span>
+                        </span>
+                        <sc-if value="{{ r.isToggle }}" hint-placeholder-val="{{ true }}">
+                          <span onClick="{{ r.go }}" style="width:42px;height:25px;flex:none;border-radius:13px;padding:3px;cursor:pointer;background:{{ r.track }};display:flex;justify-content:{{ r.align }};transition:background .18s"><i style="width:19px;height:19px;border-radius:50%;background:var(--color-text);display:block"></i></span>
+                        </sc-if>
+                        <sc-if value="{{ r.isLink }}" hint-placeholder-val="{{ true }}">
+                          <span style="font-size:13px;color:var(--color-neutral-600);flex:none">›</span>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="font-size:11.5px;line-height:1.5;color:var(--color-neutral-600);text-align:center;padding-top:4px">Hundred is free forever. No ads, no paywall,<br>no locked exercises.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSquad }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;padding:16px 20px 96px;gap:15px">
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="font-size:22px;font-weight:500;letter-spacing:-.02em">Squad</div>
+                <div style="font-size:13px;line-height:1.5;color:var(--color-neutral-400)">Ships after sync. Here's the shape of it: a quiet side tab, not the main event.</div>
+              </div>
+              <div style="padding:15px;border-radius:15px;background:linear-gradient(150deg,#20233a,#181a28);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:12px">
+                <span class="tag tag-outline" style="align-self:flex-start">Preview</span>
+                <sc-for list="{{ feed }}" as="f" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;opacity:.55">
+                    <span style="width:34px;height:34px;flex:none;border-radius:50%;background:{{ f.chip }};display:grid;place-items:center;font-size:13px;font-weight:500">{{ f.initial }}</span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:13px;font-weight:500">{{ f.name }}</span>
+                      <span style="font-size:11.5px;color:var(--color-neutral-500)">{{ f.line }}</span>
+                    </span>
+                    <span style="font-size:10.5px;color:var(--color-neutral-600);flex:none">{{ f.ago }}</span>
+                  </div>
+                </sc-for>
+                <div style="font-size:11.5px;line-height:1.5;color:var(--color-neutral-500);border-top:1px solid rgba(233,233,237,.10);padding-top:11px">Nudges are one tap and capped: a friend can poke you twice a day, never more.</div>
+              </div>
+              <button class="btn btn-primary btn-block" onClick="{{ toggleWait }}" style="height:46px">{{ waitCta }}</button>
+            </div>
+          </sc-if>
+
+        </div>
+
+        <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:0;right:0;bottom:0;height:84px;padding:0 14px 20px;background:linear-gradient(to top,rgba(22,24,38,.98) 55%,rgba(22,24,38,0));display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(8px)">
+            <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="5">
+              <span onClick="{{ tb.go }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:{{ tb.fg }}">
+                <span style="font-size:16px;line-height:1">{{ tb.icon }}</span>
+                <span style="font-size:9.5px;letter-spacing:.02em">{{ tb.name }}</span>
+              </span>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+      <div style="position:absolute;left:50%;bottom:6px;width:120px;height:4px;border-radius:2px;background:rgba(233,233,237,.35);transform:translateX(-50%)"></div>
+    </div>
+
+    <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+      <div style="width:320px;flex:none;display:flex;flex-direction:column;gap:16px;padding-top:6px">
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="font-size:10px;letter-spacing:.14em;color:var(--color-accent)">SCREEN {{ curNum }}</div>
+          <div style="font-size:21px;font-weight:500;letter-spacing:-.02em">{{ curName }}</div>
+          <div style="font-size:13px;line-height:1.6;color:var(--color-neutral-400);text-wrap:pretty">{{ curNote }}</div>
+        </div>
+        <div style="height:1px;background:linear-gradient(to right,rgba(233,233,237,.16),transparent)"></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:10px;letter-spacing:.12em;color:var(--color-neutral-500)">DECISIONS ON THIS SCREEN</div>
+          <sc-for list="{{ curFacts }}" as="f" hint-placeholder-count="3">
+            <div style="display:flex;gap:9px;font-size:12.5px;line-height:1.55;color:var(--color-neutral-300)">
+              <span style="color:var(--color-accent);flex:none">·</span><span>{{ f.t }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="height:1px;background:linear-gradient(to right,rgba(233,233,237,.16),transparent)"></div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="font-size:10px;letter-spacing:.12em;color:var(--color-neutral-500)">TRY IT</div>
+          <div style="font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Hit <strong style="color:var(--color-text);font-weight:500">Start</strong> on the dashboard and the counter runs a real cadence: tempo slider, voice count, tap-to-count fallback, and banked reps flow back into today's totals.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span class="tag tag-neutral">Counter: {{ counterName }}</span>
+            <span class="tag tag-neutral">Dashboard: {{ dashName }}</span>
+          </div>
+          <div style="font-size:11.5px;line-height:1.6;color:var(--color-neutral-600)">Both variants are switchable in Tweaks. The handoff files in <strong style="color:var(--color-neutral-400);font-weight:500">handoff/</strong> spec every screen and component for your build agent.</div>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;counterVariant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Cadence ring&quot;,&quot;Big numeral&quot;,&quot;Ladder lane&quot;],&quot;default&quot;:&quot;Cadence ring&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Variants&quot;},&quot;dashboardVariant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Rings&quot;,&quot;Fuel bars&quot;],&quot;default&quot;:&quot;Rings&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Variants&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reference&quot;}}">
+const SCREENS = [
+  ["welcome","Welcome","The pitch is the promise, not the product: 300 reps a day, cut small. The bar chart is the whole plan in one glance (three reps to a hundred), so the ask feels survivable before we ask for anything.",["No sign-up wall: the app is usable offline, on-device, from tap one.","'Free forever' stated up front because it removes the main install objection.","Secondary path for people already training so we don't force the baseline test."]],
+  ["baseline","Baseline test","Three max sets set every number in the plan. Copy explicitly blesses a low score. The failure mode here is a beginner lying upward and getting a plan they quit in four days.",["Zero pull-ups is a valid, expected answer and routes straight into the assisted path.","Each test opens the same live counter used in real sets, so the counter UI is learned here.","Typing your numbers is allowed: friction here costs more than accuracy."]],
+  ["bar","Equipment & pull-up path","Only the pull-up half branches. Showing the five-rung ladder makes 'I can't do pull-ups' a position on a path rather than a disqualification.",["Rungs: rows → negatives → band-assisted → partials → full.","Promotion rule is explicit (8 clean reps in a set) so progress feels earned, not arbitrary.","No-bar users get rows and stay in the same 100-rep frame."]],
+  ["schedule","Auto-scheduled windows","The coach proposes four windows under six minutes each; the user edits rather than authors. Reflow is the safety valve that makes a missed window a non-event.",["Proposal over blank slate: most users can't design a split.","Every window is drag-reorderable; the coach recomputes reps per window.","Reflow on by default: missed reps move, they don't disappear."]],
+  ["plan","Plan preview","The curve is the contract: day 1 is small, day 84 is a hundred. Ladders twice a week plus percentage-of-max the rest, ~8% weekly.",["Day-1 numbers are shown next to the 100 target so the ramp is legible.","Progression model named on-screen: users trust a plan they can describe.","84 days chosen so the ramp stays under 10% a week from a low base."]],
+  ["today","Today dashboard","One question answered: what do I do in the next five minutes. Rings for at-a-glance state, an up-next card as the single primary action, then the timeline for the shape of the day.",["Up Next is the only accent-outlined button on the screen.","Timeline shows done / now / later with dot state, not colour alone.","Playful nudge line sits last: encouragement never outranks the action."]],
+  ["session","Live rep counter","The working screen. Big count, cadence cue, tempo under thumb. Audio leads: the app says the number and cues down/up so the phone can sit on the floor face-down.",["Three count modes (voice-led cadence, camera auto, tap-to-count), switchable mid-set.","Tempo is a first-class control, 1.0–4.0 s/rep, and drives audio and animation together.","Manual ± always present: never trap a rep the sensor missed.","Ladder position ('set 3 of 5') keeps a 46-rep target from feeling like one wall."]],
+  ["done","Set complete","Short, warm, and immediately re-entrant. The three bars answer 'how much is left today' before the user has to ask.",["Reps bank into today's totals the moment the set ends.","'One more set' is a real secondary: many users overshoot by choice.","Confetti-free: the accent glow carries the reward on a dark ground."]],
+  ["progress","Progress & streaks","Streak is the retention lever, so it leads, but total reps sits beside it so a broken streak doesn't erase the work.",["Streak card is the only lit surface; everything else stays desaturated.","Weekly bars are per-exercise, so a weak lift is visible.","Calendar uses fill strength for completion percentage, not pass/fail."]],
+  ["settings","Settings & profile","Honest about being on-device only, and turns the missing account into an upcoming feature the user can opt into rather than a gap.",["Sync framed as 'your history merges': no fear of losing local data.","Reminders and nudges grouped together since both are notification permissions.","Free-forever restated at the bottom of the list, where paywalls usually sit."]],
+  ["squad","Squad (preview)","Social is a side tab by decision. This screen exists to set expectations and collect intent, not to fake a network.",["Feed preview is dimmed and labelled Preview, with no fake live data.","Nudges capped at two per friend per day, stated before launch.","Ships after sync, because a friends graph needs accounts."]]
+];
+
+const EX = {
+  push:{name:"Push-ups",icon:"⌃",chip:"#423a6a",color:"#9184d9"},
+  pull:{name:"Pull-ups",icon:"⌄",chip:"#3f424d",color:"#b5abfc"},
+  squat:{name:"Squats",icon:"◍",chip:"#2b2741",color:"#5d5294"}
+};
+
+class Component extends DCLogic {
+  state = {
+    screen: "welcome",
+    tested: { push:true, pull:false, squat:false },
+    bar: "doorway",
+    done: { push:12, pull:4, squat:20 },
+    target: { push:46, pull:18, squat:62 },
+    ses: null,
+    tempo: 2,
+    mode: "voice",
+    voice: true,
+    reflow: true,
+    waitlist: false,
+    toggles: { reminders:true, haptics:true, ticks:true, camera:false },
+    lastBanked: 12,
+    name: "Alex",
+    nameDraft: "Alex",
+    editingName: false
+  };
+
+  editName = () => this.setState(s => ({ editingName: true, nameDraft: s.name }));
+  setNameDraft = (e) => this.setState({ nameDraft: e.target.value });
+  saveName = () => this.setState(s => {
+    const n = s.nameDraft.trim().slice(0, 24);
+    return { name: n || s.name, nameDraft: n || s.name, editingName: false };
+  });
+  nameKey = (e) => { if (e.key === "Enter") this.saveName(); if (e.key === "Escape") this.setState({ editingName: false }); };
+
+  componentWillUnmount(){ this.stop(); }
+
+  go = (s) => () => { if (s !== "session") this.stop(); this.setState({ screen: s }); };
+
+  stop(){ if (this.timer) { clearInterval(this.timer); this.timer = null; } }
+
+  speak(txt){
+    if (!this.state.voice) return;
+    try {
+      const u = new SpeechSynthesisUtterance(String(txt));
+      u.rate = 1.15; u.volume = 0.9;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  tick(){
+    const ses = this.state.ses; if (!ses) return;
+    const nextPhase = ses.phase === "down" ? "up" : "down";
+    let count = ses.count;
+    if (nextPhase === "down") count = count + 1;
+    if (count > ses.target) { this.bank(ses.target); return; }
+    if (nextPhase === "down" && count > 0) this.speak(count);
+    this.setState({ ses: { ...ses, phase: nextPhase, count } });
+  }
+
+  run(on){
+    this.stop();
+    if (on) this.timer = setInterval(() => this.tick(), Math.max(300, this.state.tempo * 500));
+  }
+
+  startSession = (key, target, ladder) => () => {
+    this.setState({ screen:"session", ses:{ ex:key, target, ladder, count:0, phase:"up", running:true } });
+    this.run(true);
+    this.speak("Let's go");
+  };
+
+  toggleRun = () => {
+    const ses = this.state.ses; if (!ses) return;
+    const running = !ses.running;
+    this.setState({ ses: { ...ses, running } });
+    this.run(running);
+  };
+
+  tapRep = () => {
+    const ses = this.state.ses; if (!ses) return;
+    const count = Math.min(ses.target, ses.count + 1);
+    this.setState({ ses: { ...ses, count } });
+    this.speak(count);
+  };
+
+  decRep = () => {
+    const ses = this.state.ses; if (!ses) return;
+    this.setState({ ses: { ...ses, count: Math.max(0, ses.count - 1) } });
+  };
+
+  setTempo = (e) => {
+    const tempo = parseFloat(e.target.value);
+    this.setState({ tempo });
+    if (this.state.ses && this.state.ses.running) setTimeout(() => this.run(true), 0);
+  };
+
+  bank(n){
+    const ses = this.state.ses; if (!ses) return;
+    this.stop();
+    const done = { ...this.state.done };
+    done[ses.ex] = Math.min(this.state.target[ses.ex], done[ses.ex] + n);
+    this.setState({ done, lastBanked:n, screen:"done", ses:{ ...ses, running:false } });
+    this.speak("Set complete");
+  }
+
+  endSet = () => { if (this.state.ses) this.bank(this.state.ses.count); };
+  toggleVoice = () => this.setState(s => ({ voice: !s.voice }));
+  toggleReflow = () => this.setState(s => ({ reflow: !s.reflow }));
+  toggleWait = () => this.setState(s => ({ waitlist: !s.waitlist }));
+  toggleKey = (k) => () => this.setState(s => ({ toggles: { ...s.toggles, [k]: !s.toggles[k] } }));
+  setMode = (m) => () => this.setState({ mode: m });
+
+  nextTask(){
+    const { done, target } = this.state;
+    const order = ["push","pull","squat"];
+    const key = order.find(k => done[k] < target[k]) || "push";
+    const left = Math.max(0, target[key] - done[key]);
+    const reps = Math.max(4, Math.min(14, Math.ceil(left / 3)));
+    return { key, reps, left };
+  }
+
+  renderVals(){
+    const st = this.state;
+    const counter = this.props.counterVariant || "Cadence ring";
+    const dash = this.props.dashboardVariant || "Rings";
+    const showNotes = this.props.showNotes !== false;
+    const meta = SCREENS.find(s => s[0] === st.screen) || SCREENS[0];
+    const idx = SCREENS.indexOf(meta);
+    const nx = this.nextTask();
+    const ses = st.ses;
+    const cur = ses ? EX[ses.ex] : EX.push;
+    const pctOf = k => Math.round(100 * st.done[k] / st.target[k]);
+    const totalLeft = ["push","pull","squat"].reduce((a,k) => a + Math.max(0, st.target[k] - st.done[k]), 0);
+
+    const rings = ["push","pull","squat"].map(k => ({
+      name: EX[k].name, done: st.done[k], target: st.target[k], pct: pctOf(k),
+      stroke: EX[k].color, offset: (213.6 * (1 - Math.min(1, st.done[k] / st.target[k]))).toFixed(1)
+    }));
+
+    const win = [
+      ["07:10","Push-ups","12 reps · ladder 1–4","done"],
+      ["09:40","Squats","20 reps · done","done"],
+      ["12:30", EX[nx.key].name, nx.reps + " reps · up next","now"],
+      ["17:45","Pull-ups","band-assisted · 6 reps","later"],
+      ["21:00","Squats","22 reps · finisher","later"]
+    ];
+
+    return {
+      showNotes, counterName: counter, dashName: dash,
+      curNum: String(idx + 1).padStart(2,"0"), curName: meta[1], curNote: meta[2],
+      curFacts: meta[3].map(t => ({ t })),
+      screens: SCREENS.map((s,i) => ({
+        num: String(i+1).padStart(2,"0"), name: s[1], go: this.go(s[0]),
+        bg: s[0] === st.screen ? "rgba(145,132,217,.16)" : "transparent",
+        fg: s[0] === st.screen ? "#d2cefd" : "#b2b6ca"
+      })),
+
+      isWelcome: st.screen === "welcome", isBaseline: st.screen === "baseline",
+      isBar: st.screen === "bar", isSchedule: st.screen === "schedule",
+      isPlan: st.screen === "plan", isToday: st.screen === "today",
+      isSession: st.screen === "session", isDone: st.screen === "done",
+      isProgress: st.screen === "progress", isSettings: st.screen === "settings",
+      isSquad: st.screen === "squad",
+      showTabs: ["today","progress","settings","squad"].indexOf(st.screen) > -1,
+
+      goWelcome: this.go("welcome"), goBaseline: this.go("baseline"), goBar: this.go("bar"),
+      goSchedule: this.go("schedule"), goPlan: this.go("plan"), goToday: this.go("today"),
+
+      tests: [
+        ["push","Max push-ups","One clean set to failure"],
+        ["pull","Max pull-ups","Zero is a fine answer"],
+        ["squat","Max squats","Full depth, no bouncing"]
+      ].map(([k,n,s]) => ({
+        name:n, sub:s, icon:EX[k].icon, chip:EX[k].chip, chipFg:"#e7e5fe",
+        val: st.tested[k] ? ({push:"8 reps",pull:"1 rep",squat:"22 reps"})[k] : "Test →",
+        valFg: st.tested[k] ? "#d2cefd" : "#75798c",
+        go: () => this.setState(s2 => ({ tested: { ...s2.tested, [k]: true } }))
+      })),
+      baselineCta: st.tested.push && st.tested.pull && st.tested.squat ? "Build my plan" : "Next: equipment",
+
+      barOpts: [
+        ["doorway","Doorway or wall bar","Full pull-up path available"],
+        ["park","Park or gym bar","Full path, plus dips later"],
+        ["none","No bar yet","Rows under a table, we'll adapt"]
+      ].map(([k,n,s]) => {
+        const on = st.bar === k;
+        return { name:n, sub:s, go: () => this.setState({ bar:k }),
+          ring: on ? "inset 0 0 0 1px #9184d9" : "var(--shadow-sm)",
+          dotBorder: on ? "#9184d9" : "rgba(233,233,237,.16)",
+          dotBg: on ? "#9184d9" : "transparent",
+          dotInner: on ? "inset 0 0 0 4px #161826" : "none" };
+      }),
+      pullPath: ["Rows","Negatives","Band","Partials","Full"].map((n,i) => ({
+        name:n, bar: i <= 2 ? "#9184d9" : "rgba(233,233,237,.14)",
+        fg: i === 2 ? "#d2cefd" : "#75798c"
+      })),
+
+      proposal: [
+        ["07:10","12 push-ups · ladder 1–4","about 4 min"],
+        ["09:40","20 squats","about 3 min"],
+        ["12:30","6 band-assisted pull-ups","about 5 min"],
+        ["17:45","14 push-ups + 22 squats","about 6 min"]
+      ].map(([time,body,len]) => ({ time, body, len })),
+      reflowTrack: st.reflow ? "#9184d9" : "rgba(233,233,237,.16)",
+      reflowAlign: st.reflow ? "flex-end" : "flex-start",
+
+      planRows: [
+        ["push","Max 8 · 6 sets of 4 · +8% a week","24"],
+        ["pull","Max 1 · band-assisted, 3 sets of 2","6"],
+        ["squat","Max 22 · 4 sets of 10 · ladders Tue/Fri","40"]
+      ].map(([k,sub,today]) => ({ name:EX[k].name, sub, today, icon:EX[k].icon, chip:EX[k].chip })),
+
+      remainingLine: totalLeft + " reps left today",
+      rings, dashRings: dash === "Rings", dashFuel: dash !== "Rings",
+      nextTitle: nx.reps + " " + EX[nx.key].name.toLowerCase(),
+      nextSub: nx.key === "pull" ? "Band-assisted · ladder 2–4 · ~5 min" : "Ladder 1–4 · about 4 min",
+      startNext: this.startSession(nx.key, nx.reps, "Set 3 of 5"),
+      nudge: totalLeft > 60 ? "Big day still ahead. Twelve reps now is worth more than fifty tonight." : "You're past the hump, the rest is downhill from here.",
+      windows: win.map(([time,name,sub,state]) => ({
+        time, name, sub,
+        dot: state === "done" ? "#9184d9" : state === "now" ? "#e9e9ed" : "rgba(233,233,237,.20)",
+        dotRing: state === "now" ? "0 0 0 5px rgba(145,132,217,.22)" : "none",
+        op: state === "later" ? "0.6" : "1",
+        actionable: state === "now",
+        go: this.startSession(nx.key, nx.reps, "Set 3 of 5")
+      })),
+
+      ctrNumeral: counter === "Big numeral", ctrRing: counter === "Cadence ring", ctrLane: counter === "Ladder lane",
+      sesName: cur.name, sesLadder: ses ? (ses.ladder + " · target " + ses.target) : "",
+      sesCount: ses ? ses.count : 0, sesTarget: ses ? ses.target : 0,
+      sesOffset: ses ? (703.7 * (1 - Math.min(1, ses.count / ses.target))).toFixed(1) : 703.7,
+      cue: ses ? (ses.running ? (ses.phase === "down" ? "DOWN" : "UP") : "PAUSED") : "READY",
+      cueFg: ses && ses.running ? (ses.phase === "down" ? "#9184d9" : "#e9e9ed") : "#75798c",
+      pulseDur: (st.tempo) + "s",
+      pips: Array.from({ length: ses ? ses.target : 12 }, (_, i) => ({
+        h: 8 + Math.round(6 * Math.sin(i / 2)),
+        bg: ses && i < ses.count ? "#9184d9" : "rgba(233,233,237,.10)"
+      })).slice(0, 16),
+      tempo: st.tempo, tempoLabel: st.tempo.toFixed(2) + " s / rep",
+      setTempo: this.setTempo, toggleRun: this.toggleRun, tapRep: this.tapRep,
+      decRep: this.decRep, endSet: this.endSet,
+      runIcon: ses && ses.running ? "❚❚" : "▶",
+      toggleVoice: this.toggleVoice,
+      voiceBg: st.voice ? "#423a6a" : "rgba(233,233,237,.07)",
+      voiceFg: st.voice ? "#d2cefd" : "#75798c",
+      modes: [["voice","Voice-led"],["camera","Camera auto"],["tap","Tap to count"]].map(([k,n]) => {
+        const on = st.mode === k;
+        return { name:n, go:this.setMode(k),
+          bg: on ? "rgba(145,132,217,.14)" : "rgba(233,233,237,.05)",
+          fg: on ? "#d2cefd" : "#9397ab",
+          ring: on ? "inset 0 0 0 1px #9184d9" : "none" };
+      }),
+
+      doneReps: st.lastBanked,
+      doneLine: totalLeft > 0 ? "That's " + totalLeft + " reps left today, across " + (totalLeft > 40 ? "three" : "two") + " more windows. Nothing dramatic." : "Day cleared. All three hundreds, banked.",
+
+      calendar: Array.from({ length: 28 }, (_, i) => {
+        const n = i + 1;
+        const lvl = [0,3,3,2,3,1,0,3,3,3,2,3,3,0,1,3,3,3,3,2,0,3,3,2,3,3,3,3][i];
+        return { n, bg: ["rgba(233,233,237,.05)","#2b2741","#5d5294","#9184d9"][lvl],
+          fg: lvl >= 2 ? "#f5f4ff" : "#75798c" };
+      }),
+      pbs: [
+        ["push","Best push-up set","21","+3"],
+        ["pull","Best pull-up set","6","+2"],
+        ["squat","Best squat set","48","+5"]
+      ].map(([k,name,val,delta]) => ({ name, val, delta, icon:EX[k].icon, chip:EX[k].chip })),
+
+      waitTrack: st.waitlist ? "#9184d9" : "rgba(233,233,237,.16)",
+      waitAlign: st.waitlist ? "flex-end" : "flex-start",
+      waitCta: st.waitlist ? "You're on the list ✓" : "Tell me when Squad lands",
+      userName: st.name,
+      initial: (st.name.trim()[0] || "A").toUpperCase(),
+      editingName: st.editingName, notEditingName: !st.editingName,
+      nameDraft: st.nameDraft, setNameDraft: this.setNameDraft,
+      saveName: this.saveName, editName: this.editName, nameKey: this.nameKey,
+      settingGroups: [
+        ["COUNTER", [
+          ["◗","Voice count","Says every rep out loud","voice"],
+          ["◈","Camera auto-count","Uses the front camera, on-device","camera"],
+          ["◌","Metronome ticks","Down / up cue tones","ticks"],
+          ["◉","Haptics","A pulse per rep","haptics"]
+        ]],
+        ["REMINDERS", [
+          ["△","Window reminders","5 minutes before each window","reminders"],
+          ["✦","Motivational nudges","Playful, max two a day","link"],
+          ["⌸","Data & privacy","On-device, export any time","link"],
+          ["◇","About Hundred","v1.0 · free forever","link"]
+        ]]
+      ].map(([name, rows]) => ({
+        name,
+        rows: rows.map(([icon, rname, sub, kind], i) => {
+          const isToggle = kind !== "link";
+          const on = kind === "voice" ? st.voice : st.toggles[kind];
+          return { icon, name:rname, sub, isToggle, isLink: !isToggle,
+            sep: i === 0 ? "transparent" : "rgba(233,233,237,.08)",
+            track: on ? "#9184d9" : "rgba(233,233,237,.16)",
+            align: on ? "flex-end" : "flex-start",
+            go: kind === "voice" ? this.toggleVoice : this.toggleKey(kind) };
+        })
+      })),
+
+      feed: [
+        ["M","Mike","Cleared all three hundreds","2m","#423a6a"],
+        ["S","Sara","New best: 9 pull-ups","15m","#3f424d"],
+        ["J","Jon","Day 40 streak","1h","#2b2741"]
+      ].map(([initial,name,line,ago,chip]) => ({ initial, name, line, ago, chip })),
+
+      tabs: [
+        ["Today","⌂","today"],["Progress","◫","progress"],["Squad","◎","squad"],["You","◔","settings"]
+      ].map(([name,icon,key]) => ({ name, icon, go:this.go(key),
+        fg: st.screen === key ? "#d2cefd" : "#75798c" }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>
