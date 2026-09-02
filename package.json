@@ -1,43 +1,31 @@
 {
   "name": "centuryfit",
-  "version": "1.0.0",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "build:sw": "tsc -p tsconfig.sw.json"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@clerk/nextjs": "^6.10.0",
-    "@supabase/supabase-js": "^2.47.0",
-    "@supabase/ssr": "^0.7.0",
-    "web-push": "^3.6.7",
-    "idb": "^8.0.1",
-    "recharts": "^2.14.1",
-    "date-fns": "^4.1.0",
-    "zod": "^3.24.1",
-    "svix": "^1.40.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0",
-    "class-variance-authority": "^0.7.1",
-    "lucide-react": "^0.468.0"
+    "@tailwindcss/vite": "^4.3.3",
+    "dexie": "^4.4.5",
+    "lucide-react": "^1.39.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.3",
+    "tailwindcss": "^4.3.3",
+    "vite-plugin-pwa": "^1.3.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "@types/node": "^22.10.0",
-    "@types/react": "^19.0.6",
-    "@types/react-dom": "^19.0.2",
-    "@types/web-push": "^3.6.4",
-    "tailwindcss": "^4.0.0",
-    "postcss": "^8.4.49",
-    "autoprefixer": "^10.4.20",
-    "@tailwindcss/postcss": "^4.0.0",
-    "eslint": "^9.17.0",
-    "eslint-config-next": "^15.1.0"
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "oxlint": "^1.79.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2"
   }
 }
