@@ -1,11 +1,12 @@
 import webpush from 'web-push'
 
-// Initialize web-push with VAPID keys
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
+function initVapid() {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT!,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  )
+}
 
 export interface PushSubscription {
   endpoint: string
@@ -29,6 +30,7 @@ export async function sendPush(
   subscription: PushSubscription,
   payload: PushPayload
 ) {
+  initVapid()
   try {
     await webpush.sendNotification(
       subscription,
