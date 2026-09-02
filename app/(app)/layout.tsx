@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { getGuest } from '@/lib/guest'
@@ -9,17 +9,27 @@ import Link from 'next/link'
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useUser()
+  // If Clerk doesn't load within 3s (e.g. network error), unblock the UI
+  const [clerkTimedOut, setClerkTimedOut] = useState(false)
 
   useEffect(() => {
-    if (!isLoaded) return
+    if (isLoaded) return
+    const t = setTimeout(() => setClerkTimedOut(true), 3000)
+    return () => clearTimeout(t)
+  }, [isLoaded])
+
+  const ready = isLoaded || clerkTimedOut
+
+  useEffect(() => {
+    if (!ready) return
     // Allow through if signed in via Clerk or has a guest session
     if (!isSignedIn && !getGuest()) {
       router.replace('/')
     }
-  }, [isSignedIn, isLoaded, router])
+  }, [isSignedIn, ready, router])
 
-  // Don't flash content while Clerk loads
-  if (!isLoaded) return null
+  // Don't flash content while Clerk loads (max 3s wait)
+  if (!ready) return null
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-20">

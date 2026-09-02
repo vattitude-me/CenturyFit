@@ -55,9 +55,16 @@ export default function DashboardPage() {
   const router = useRouter()
   const [planData, setPlanData] = useState<PlanData | null>(null)
   const [displayName, setDisplayName] = useState('')
+  const [clerkTimedOut, setClerkTimedOut] = useState(false)
 
   useEffect(() => {
-    if (!isLoaded) return
+    if (isLoaded) return
+    const t = setTimeout(() => setClerkTimedOut(true), 3000)
+    return () => clearTimeout(t)
+  }, [isLoaded])
+
+  useEffect(() => {
+    if (!isLoaded && !clerkTimedOut) return
 
     if (isSignedIn && user) {
       setDisplayName(user.firstName || user.username || 'there')
@@ -83,7 +90,7 @@ export default function DashboardPage() {
       })
       setPlanData(buildGuestPlan(completedReps))
     })
-  }, [isSignedIn, isLoaded, user, router])
+  }, [isSignedIn, isLoaded, clerkTimedOut, user, router])
 
   if (!planData) {
     return (

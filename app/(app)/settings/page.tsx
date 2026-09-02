@@ -127,7 +127,10 @@ export default function SettingsPage() {
       {/* About */}
       <div className="bg-secondary rounded-xl p-4 space-y-2">
         <h2 className="font-semibold text-foreground">About</h2>
-        <p className="text-xs text-muted-foreground">CenturyFit v1.0</p>
+        <p className="text-xs text-muted-foreground">
+          CenturyFit v{process.env.NEXT_PUBLIC_APP_VERSION}
+          <span className="ml-2 opacity-50">({process.env.NEXT_PUBLIC_COMMIT_HASH})</span>
+        </p>
         <p className="text-xs text-muted-foreground">
           100 push-ups, pull-ups, and squats every day
         </p>
