@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { sendPush } from '@/lib/push/webpush'
+import { sendPush, PushSubscription } from '@/lib/push/webpush'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
       // Send to every registered device, isolating failures per device
       await Promise.allSettled(
-        user.push_subscriptions.map((sub: { endpoint: string; keys: object }) =>
+        user.push_subscriptions.map((sub: PushSubscription) =>
           sendPush(sub, payload).catch((err) =>
             console.error(`Push failed for user ${user.id} endpoint ${sub.endpoint}:`, err)
           )
