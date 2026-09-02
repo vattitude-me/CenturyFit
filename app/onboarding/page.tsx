@@ -1,15 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
-import { createServerClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import type { Database } from '@/lib/supabase/types'
+import { useRouter } from 'next/navigation'
 
 type BaselineStep = 'welcome' | 'pushups' | 'pullups' | 'squats' | 'preferences' | 'complete'
 
 export default function OnboardingPage() {
+  const router = useRouter()
   const [step, setStep] = useState<BaselineStep>('welcome')
   const [pushupMax, setPushupMax] = useState<number>(0)
   const [pullupMax, setPullupMax] = useState<number>(0)
@@ -32,38 +29,20 @@ export default function OnboardingPage() {
     setError(null)
 
     try {
-      // Get current user from Clerk
-      const cookieStore = await cookies()
-      const supabase = await createServerClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) throw new Error('User not authenticated')
-
-      // Deactivate any existing baselines
-      await supabase
-        .from('baselines')
-        .update({ is_active: false })
-        .eq('user_id', user.id)
-
-      // Insert new baseline
-      const { error: insertError } = await supabase
-        .from('baselines')
-        .insert({
-          user_id: user.id,
+      // Call API endpoint to save baseline
+      const res = await fetch('/api/onboarding/baseline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           pushup_max: pushupMax,
           pullup_max: pullupMax,
           squat_max: squatMax,
-          is_active: true,
-        })
+        }),
+      })
 
-      if (insertError) throw insertError
-
-      // Save preferences if provided
-      // In a real app, you might have a separate preferences table
-      // For now we can store in user_metadata or a separate table
-      // Skipping for MVP - can be added later
+      if (!res.ok) {
+        throw new Error('Failed to save baseline')
+      }
 
       setStep('complete')
     } catch (err) {
@@ -515,7 +494,7 @@ export default function OnboardingPage() {
 
           <button
             onClick={() => {
-              redirect('/dashboard')
+              router.push('/dashboard')
             }}
             className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg font-semibold"
           >

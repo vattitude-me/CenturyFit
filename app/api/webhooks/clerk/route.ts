@@ -70,7 +70,7 @@ export async function POST(req: Request) {
         username: finalUsername,
         display_name: finalUsername,
         avatar_url: image_url || null,
-      })
+      } as any)
 
       if (profileError) {
         console.error('Error creating profile:', profileError)
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       // Insert default notification preferences
       const { error: prefsError } = await supabase.from('notification_prefs').insert({
         user_id: id,
-      })
+      } as any)
 
       if (prefsError) {
         console.error('Error creating notification prefs:', prefsError)
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
         user_id: id,
         current_streak: 0,
         longest_streak: 0,
-      })
+      } as any)
 
       if (streakError) {
         console.error('Error creating streak:', streakError)

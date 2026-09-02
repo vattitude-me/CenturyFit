@@ -1,6 +1,3 @@
-import type { Database } from '@/lib/supabase/types'
-import { createClient } from '@/lib/supabase/server'
-
 interface BaselineData {
   pushup_max: number
   pullup_max: number
@@ -10,9 +7,25 @@ interface BaselineData {
 
 interface PlanParams {
   baseline: BaselineData
-  exercise: keyof BaselineData
+  exercise: keyof Omit<BaselineData, 'assessed_at'>
   weekNumber: number
   lastWeekCompletionRate: number
+}
+
+interface DailyPlan {
+  morning: number
+  afternoon: number
+  evening: number
+  repsPerSet: number
+  lastSetReps: number
+  totalSets: number
+  progressFactor: number
+}
+
+interface GeneratedPlans {
+  baseline: BaselineData
+  weekNumber: number
+  plans: Record<string, DailyPlan>
 }
 
 /**
@@ -25,7 +38,7 @@ interface PlanParams {
  * - last set = 100 - (totalSets - 1) × repsPerSet
  * - Distribute sets across morning/afternoon/evening slots
  */
-export async function generateDailyPlan(params: PlanParams) {
+export function generateDailyPlan(params: PlanParams): DailyPlan {
   const { baseline, exercise, weekNumber, lastWeekCompletionRate } = params
 
   const maxReps = baseline[exercise]
@@ -77,88 +90,22 @@ export function getWeekNumber(assessedAt: string): number {
 }
 
 /**
- * Calculate last week's completion rate for an exercise
+ * Generate plans for all three exercises - pure calculation version
+ * Takes baseline data directly instead of fetching from DB
  */
-export async function getLastWeekCompletionRate(
-  userId: string,
-  exercise: keyof BaselineData
-): Promise<number> {
-  const supabase = await createClient()
-
-  const today = new Date()
-  const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-  const { data, error } = await supabase
-    .from('completed_sets')
-    .select('reps_completed')
-    .eq('user_id', userId)
-    .eq('exercise', exercise)
-    .gte('completed_at', oneWeekAgo.toISOString())
-    .lte('completed_at', today.toISOString())
-
-  if (error) {
-    console.error('Error fetching completion rate:', error)
-    return 0.5 // Default moderate completion
-  }
-
-  if (!data || data.length === 0) {
-    return 0.5 // No data yet, assume moderate
-  }
-
-  // Get the planned sets for last week to calculate target
-  const { data: plannedData, error: plannedError } = await supabase
-    .from('planned_sets')
-    .select('target_reps')
-    .eq('daily_plan_id', supabase.from('daily_plans').select('id').eq('user_id', userId).single())
-    .gte('created_at', oneWeekAgo.toISOString())
-    .lte('created_at', today.toISOString())
-
-  if (plannedError || !plannedData) {
-    return 0.5
-  }
-
-  // Calculate completion rate: actual reps / target reps
-  const totalActual = data.reduce((sum, set) => sum + set.reps_completed, 0)
-  const totalTarget = plannedData.reduce((sum, set) => sum + set.target_reps, 0)
-
-  return totalTarget > 0 ? Math.min(totalActual / totalTarget, 1.0) : 0.5
-}
-
-/**
- * Generate plans for all three exercises for today
- */
-export async function generateTodaysPlans(userId: string) {
-  const supabase = await createClient()
-
-  // Get active baseline
-  const { data: baselineData, error: baselineError } = await supabase
-    .from('baselines')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_active', true)
-    .single()
-
-  if (baselineError || !baselineData) {
-    throw new Error('No active baseline found')
-  }
-
-  const baseline = {
-    pushup_max: baselineData.pushup_max,
-    pullup_max: baselineData.pullup_max,
-    squat_max: baselineData.squat_max,
-    assessed_at: baselineData.assessed_at
-  }
-
-  const weekNumber = getWeekNumber(baseline.assessed_at)
-
-  // Generate plans for all exercises
+export function generatePlansFromBaseline(
+  baseline: BaselineData,
+  weekNumber: number,
+  lastWeekCompletionRates: Record<string, number> = {}
+): GeneratedPlans {
   const exercises = ['pushup_max', 'pullup_max', 'squat_max'] as const
-  const plans: Record<string, any> = {}
+  const plans: Record<string, DailyPlan> = {}
 
   for (const exerciseKey of exercises) {
-    const exercise = exerciseKey.replace('_max', '') as keyof BaselineData
-    const lastWeekRate = await getLastWeekCompletionRate(userId, exercise)
-    const plan = await generateDailyPlan({
+    const exercise = exerciseKey.replace('_max', '') as keyof Omit<BaselineData, 'assessed_at'>
+    const lastWeekRate = lastWeekCompletionRates[exercise] ?? 0.5
+
+    const plan = generateDailyPlan({
       baseline,
       exercise,
       weekNumber,

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { generateTodaysPlans } from '@/lib/plan/generator'
 import type { Database } from '@/lib/supabase/types'
 
 export default function PlanPreviewPage() {
@@ -24,15 +22,16 @@ export default function PlanPreviewPage() {
       setIsLoading(true)
       setError(null)
 
-      // Get user ID from Supabase auth (we'd normally get from Clerk, but for MVP we'll check session)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        // Redirect to sign-in if not authenticated
-        router.push('/sign-in')
-        return
+      const res = await fetch('/api/plan/today')
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push('/sign-in')
+          return
+        }
+        throw new Error('Failed to load plan')
       }
 
-      const planData = await generateTodaysPlans(user.id)
+      const planData = await res.json()
       setBaseline(planData.baseline)
       setWeekNumber(planData.weekNumber)
       setPlans(planData.plans)
@@ -204,9 +203,9 @@ export default function PlanPreviewPage() {
                         </span>
                       </div>
                     )}
-                    {(plan.morning === 0 && plan.afternoon > 0) ||
+                    {((plan.morning === 0 && plan.afternoon > 0) ||
                     (plan.morning > 0 && plan.afternoon === 0 && plan.evening > 0) ||
-                    (plan.morning === 0 && plan.afternoon === 0 && plan.evening > 0) && (
+                    (plan.morning === 0 && plan.afternoon === 0 && plan.evening > 0)) && (
                       <div className="flex justify-between">
                         <span>Remaining set:</span>
                         <span>{plan.lastSetReps}</span>
@@ -215,7 +214,7 @@ export default function PlanPreviewPage() {
                   </div>
                 </div>
               </div>
-            )}
+            )
           })}
 
           <div className="border-t pt-6">

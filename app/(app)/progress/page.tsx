@@ -31,7 +31,7 @@ export default async function ProgressPage() {
       .select('exercise, reps_completed')
       .eq('user_id', userId)
 
-    completedSets?.forEach((set) => {
+    completedSets?.forEach((set: any) => {
       if (set.exercise === 'pushup') totalPushups += set.reps_completed
       if (set.exercise === 'pullup') totalPullups += set.reps_completed
       if (set.exercise === 'squat') totalSquats += set.reps_completed

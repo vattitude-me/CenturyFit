@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         cadence_bpm: cadence_bpm || null,
         planned_set_id: planned_set_id || null,
         completed_at: completed_at || new Date().toISOString(),
-      })
+      } as any)
       .select()
       .single()
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       .eq('log_date', today)
 
     let totalRepsToday = 0
-    todaySets?.forEach((s) => {
+    todaySets?.forEach((s: any) => {
       totalRepsToday += s.reps_completed
     })
 

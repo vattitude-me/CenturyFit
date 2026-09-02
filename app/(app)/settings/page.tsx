@@ -1,4 +1,5 @@
-import { auth, UserButton } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
+import { UserButton } from '@clerk/nextjs'
 
 export default async function SettingsPage() {
   const { userId } = await auth()

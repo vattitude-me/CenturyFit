@@ -87,7 +87,7 @@ export default function WorkoutPage() {
         reps_completed: targetReps,
         cadence_bpm: guidedMode ? bpm : null,
         completed_at: new Date().toISOString(),
-      })
+      } as any)
 
     if (error) {
       console.error('Error logging set:', error)

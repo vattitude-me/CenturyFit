@@ -114,7 +114,7 @@ const getTodayPlan = unstable_cache(
       pullup: 0,
       squat: 0,
     }
-    completedSets?.forEach((set) => {
+    completedSets?.forEach((set: any) => {
       completedByExercise[set.exercise] =
         (completedByExercise[set.exercise] || 0) + set.reps_completed
     })
@@ -126,7 +126,7 @@ const getTodayPlan = unstable_cache(
       squat: [],
     }
 
-    plannedSets?.forEach((set) => {
+    plannedSets?.forEach((set: any) => {
       exerciseSets[set.exercise].push({
         id: set.id,
         set_number: set.set_number,
