@@ -18,7 +18,14 @@ const STATIC_ASSETS = [
 sw.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS)
+      // Cache each asset individually so one missing icon doesn't break install
+      return Promise.all(
+        STATIC_ASSETS.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn('SW: failed to cache', url, err)
+          })
+        )
+      )
     }).then(() => {
       return sw.skipWaiting()
     })
