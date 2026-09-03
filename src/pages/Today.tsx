@@ -8,9 +8,7 @@ import { TimelineRow, type TimelineDotState } from '../components/Timeline';
 import { getProfile, getSettings, getSetLogs } from '../db';
 import { generateDayPlan, reflowMissedWindows } from '../engine/planGenerator';
 import type { Exercise, Profile, DayPlan, DashboardVariant } from '../types';
-import { EXERCISE_LABELS } from '../types';
-
-const EXERCISE_COLOR: Record<Exercise, string> = { push: '#9184d9', pull: '#b5abfc', squat: '#5d5294' };
+import { EXERCISE_LABELS, EXERCISE_COLOR } from '../types';
 
 export default function Today() {
   const navigate = useNavigate();

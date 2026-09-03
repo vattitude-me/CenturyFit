@@ -3,12 +3,9 @@ import StatCard from '../components/StatCard';
 import IconChip from '../components/IconChip';
 import { getStreak, getAllDayRecords, getAllSetLogs } from '../db';
 import type { StreakData, DayRecord, SetLog, Exercise } from '../types';
-import { EXERCISE_LABELS } from '../types';
+import { EXERCISE_LABELS, EXERCISE_COLOR, EXERCISE_CHIP_BG, EXERCISE_ICON } from '../types';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-const EXERCISE_COLOR: Record<Exercise, string> = { push: '#9184d9', pull: '#b5abfc', squat: '#5d5294' };
-const EXERCISE_CHIP: Record<Exercise, string> = { push: '#423a6a', pull: '#3f424d', squat: '#2b2741' };
-const EXERCISE_ICON: Record<Exercise, string> = { push: '⌃', pull: '⌄', squat: '◍' };
 const CAL_BG = ['rgba(233,233,237,.05)', '#2b2741', '#5d5294', '#9184d9'];
 
 function isoDate(d: Date): string {
@@ -142,7 +139,7 @@ export default function Progress() {
         <span className="text-[11px] tracking-[0.1em] text-neutral-500">PERSONAL BESTS</span>
         {(['push', 'pull', 'squat'] as Exercise[]).map((ex) => (
           <div key={ex} className="flex items-center gap-2.75 px-3.25 py-3 rounded-xl bg-surface">
-            <IconChip bg={EXERCISE_CHIP[ex]} size={30}>{EXERCISE_ICON[ex]}</IconChip>
+            <IconChip bg={EXERCISE_CHIP_BG[ex]} size={30}>{EXERCISE_ICON[ex]}</IconChip>
             <span className="flex-1 text-[13.5px]">Best {EXERCISE_LABELS[ex].toLowerCase().replace(/s$/, '')} set</span>
             <span className="text-sm font-medium tabular-nums">{bests[ex]}</span>
           </div>

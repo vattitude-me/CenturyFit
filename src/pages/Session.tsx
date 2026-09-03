@@ -4,12 +4,13 @@ import { ChevronLeft, Mic, PlayCircle, X } from 'lucide-react';
 import Button from '../components/Button';
 import TempoSlider from '../components/TempoSlider';
 import ModeChip from '../components/ModeChip';
+import IconChip from '../components/IconChip';
 import { useCadenceEngine } from '../hooks/useCadenceEngine';
 import { getSettings, saveSetLog, getDayPlan, saveDayPlan, saveBaselineLog } from '../db';
 import { recordDayProgress } from '../engine/planGenerator';
 import { EXERCISE_REFERENCE } from '../data/exerciseReference';
 import type { CounterMode, Exercise, CounterVariant, WindowItem } from '../types';
-import { EXERCISE_LABELS, TEMPO_RANGE } from '../types';
+import { EXERCISE_LABELS, EXERCISE_ICON, EXERCISE_COLOR, EXERCISE_CHIP_BG, EXERCISE_TINT_BG, TEMPO_RANGE } from '../types';
 import { requestWakeLock, releaseWakeLock } from '../engine/audio';
 
 const RING_R = 112;
@@ -53,6 +54,7 @@ export default function Session() {
   const item = queue[itemIndex];
   const exercise = item.exercise;
   const target = isBaseline ? Infinity : item.reps;
+  const exColor = EXERCISE_COLOR[exercise];
 
   const [mode, setMode] = useState<CounterMode>('voice');
   const [counterVariant, setCounterVariant] = useState<CounterVariant>('cadenceRing');
@@ -163,7 +165,7 @@ export default function Session() {
     ? (engine.state.phase === 'down' ? 'DOWN' : 'UP')
     : (engine.state.count > 0 ? 'PAUSED' : 'READY');
   const cueColor = engine.state.running
-    ? (engine.state.phase === 'down' ? '#9184d9' : '#e9e9ed')
+    ? (engine.state.phase === 'down' ? exColor : '#e9e9ed')
     : '#75798c';
 
   const offset = useMemo(() => {
@@ -172,15 +174,26 @@ export default function Session() {
   }, [engine.state.count, target]);
 
   const tempoRange = TEMPO_RANGE[exercise];
+  const formRef = EXERCISE_REFERENCE[exercise];
+
+  const showLanding = !engine.state.running && !ready && !resting && !done;
 
   if (resting) {
     const nextItem = queue[itemIndex + 1];
+    const nextColor = EXERCISE_COLOR[nextItem.exercise];
     return (
       <div className="route-done flex-1 h-full flex flex-col items-center justify-center px-6 py-6.5 gap-4 text-center">
         <div className="text-[13px] tracking-[0.14em] text-accent">REST</div>
         <div className="text-[64px] font-medium tabular-nums leading-none">{restLeft}</div>
-        <div className="text-[13.5px] leading-[1.5] text-neutral-400 max-w-[280px]">
-          Next up: {nextItem.reps} {EXERCISE_LABELS[nextItem.exercise].toLowerCase()}
+        <div
+          className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[13px]"
+          style={{ background: EXERCISE_TINT_BG[nextItem.exercise] }}
+        >
+          <IconChip exercise={nextItem.exercise} size={30}>{EXERCISE_ICON[nextItem.exercise]}</IconChip>
+          <span className="text-[13.5px] leading-[1.4] text-left" style={{ color: nextColor }}>
+            Next up<br />
+            <span className="text-text font-medium">{nextItem.reps} {EXERCISE_LABELS[nextItem.exercise].toLowerCase()}</span>
+          </span>
         </div>
         <div className="w-full flex flex-col gap-2.25 mt-1">
           <Button variant="primary" block className="h-12 text-[15px]" onClick={startNextItem}>
@@ -218,20 +231,24 @@ export default function Session() {
     );
   }
 
-  const formRef = EXERCISE_REFERENCE[exercise];
-
   return (
     <div
       className="route-session relative flex-1 h-full flex flex-col px-5 pt-3 pb-5.5 gap-3"
-      style={{ background: 'radial-gradient(120% 60% at 50% 8%, #1c1f30, #161826 70%)' }}
+      style={{ background: `radial-gradient(120% 60% at 50% 8%, ${EXERCISE_TINT_BG[exercise]}, #161826 70%)` }}
     >
       <div className="flex items-center justify-between gap-2.5">
         <Button variant="icon" onClick={() => navigate(-1)}><ChevronLeft size={18} /></Button>
-        <div className="flex flex-col items-center gap-px">
-          <span className="text-[14.5px] font-medium">{EXERCISE_LABELS[exercise]}</span>
-          <span className="text-[11px] text-neutral-500">
-            {isBaseline ? 'Baseline test' : queue.length > 1 ? `${ladder} · item ${itemIndex + 1} of ${queue.length} · target ${target}` : `${ladder} · target ${target}`}
-          </span>
+        <div className="flex items-center gap-2">
+          <IconChip exercise={exercise} size={26}>{EXERCISE_ICON[exercise]}</IconChip>
+          <div className="flex flex-col items-start gap-px">
+            <span className="text-[14.5px] font-medium">{EXERCISE_LABELS[exercise]}</span>
+            <span
+              className="text-[10.5px] font-medium px-1.5 py-px rounded-[5px] -ml-1.5"
+              style={{ background: EXERCISE_CHIP_BG[exercise], color: exColor }}
+            >
+              {isBaseline ? 'Baseline test' : queue.length > 1 ? `${ladder} · item ${itemIndex + 1} of ${queue.length} · target ${target}` : `${ladder} · target ${target}`}
+            </span>
+          </div>
         </div>
         <span className="flex items-center gap-1.5">
           <span
@@ -252,56 +269,109 @@ export default function Session() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-3.5 min-h-[280px] relative">
+        {showLanding && (
+          <div className="absolute inset-0 z-10 rounded-[18px] overflow-hidden flex flex-col">
+            <video
+              key={formRef.video}
+              src={formRef.video}
+              muted
+              loop
+              autoPlay
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: `linear-gradient(180deg, rgba(22,24,38,.35) 0%, rgba(22,24,38,.55) 55%, #161826 96%)` }}
+            />
+            <div className="relative flex-1 flex flex-col items-center justify-end gap-3 px-6 pb-6 text-center">
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium tracking-[0.06em]"
+                style={{ background: 'rgba(22,24,38,.6)', color: exColor, boxShadow: `inset 0 0 0 1px ${exColor}55` }}
+              >
+                <span className="text-[13px] leading-none">{EXERCISE_ICON[exercise]}</span>
+                {EXERCISE_LABELS[exercise].toUpperCase()}
+              </div>
+              <div className="text-[26px] font-medium tracking-[-0.02em]">
+                {engine.state.count > 0 ? `Paused at ${engine.state.count}` : (isBaseline ? 'Ready to test' : `${target} reps to go`)}
+              </div>
+              <Button
+                variant="primary"
+                className="h-13 px-8 text-[15px] !rounded-full"
+                style={{ borderColor: exColor, color: exColor }}
+                onClick={() => setReady(3)}
+              >
+                {engine.state.count > 0 ? '▶  Resume' : '▶  Start'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {ready !== null && (
-          <div className="absolute inset-0 z-20 grid place-items-center" style={{ background: 'rgba(22,24,38,.92)' }}>
-            <div className="text-[96px] font-medium tabular-nums leading-none text-accent">
+          <div className="absolute inset-0 z-20 grid place-items-center rounded-[18px] overflow-hidden" style={{ background: 'rgba(22,24,38,.92)' }}>
+            <div className="text-[96px] font-medium tabular-nums leading-none" style={{ color: exColor }}>
               {ready > 0 ? ready : 'GO'}
             </div>
           </div>
         )}
 
-        {counterVariant === 'bigNumeral' && (
+        {!showLanding && counterVariant === 'bigNumeral' && (
           <div onClick={engine.tapRep} className="flex flex-col items-center gap-0.5 cursor-pointer select-none">
             <div className="text-[132px] leading-[.9] font-medium tracking-[-0.05em] tabular-nums">{engine.state.count}</div>
             <div className="text-xs tracking-[0.28em] text-neutral-500">REPS</div>
-            <div className="mt-3 text-[22px] font-medium tracking-[0.1em]" style={{ color: cueColor }}>{cue}</div>
+            <div
+              className="mt-3 px-4 py-1.5 rounded-full text-[20px] font-semibold tracking-[0.08em]"
+              style={{ color: cueColor, background: engine.state.running ? EXERCISE_TINT_BG[exercise] : 'transparent' }}
+            >
+              {cue}
+            </div>
           </div>
         )}
 
-        {counterVariant === 'cadenceRing' && (
+        {!showLanding && counterVariant === 'cadenceRing' && (
           <div onClick={engine.tapRep} className="relative w-[250px] h-[250px] cursor-pointer select-none grid place-items-center">
             <div
               className="absolute inset-[18px] rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(145,132,217,.20), transparent 70%)', animation: `hpulse ${engine.state.tempo}s ease-in-out infinite` }}
+              style={{ background: `radial-gradient(circle, ${exColor}33, transparent 70%)`, animation: `hpulse ${engine.state.tempo}s ease-in-out infinite` }}
             />
             <svg viewBox="0 0 250 250" className="absolute inset-0 w-[250px] h-[250px] -rotate-90">
               <circle cx="125" cy="125" r={RING_R} fill="none" stroke="rgba(233,233,237,.09)" strokeWidth="10" />
               <circle
-                cx="125" cy="125" r={RING_R} fill="none" stroke="#9184d9" strokeWidth="10" strokeLinecap="round"
+                cx="125" cy="125" r={RING_R} fill="none" stroke={exColor} strokeWidth="10" strokeLinecap="round"
                 strokeDasharray={RING_DASH} strokeDashoffset={offset} style={{ transition: 'stroke-dashoffset .3s' }}
               />
             </svg>
             <div className="flex flex-col items-center gap-0.5 z-10">
               <div className="text-[82px] leading-[.95] font-medium tracking-[-0.04em] tabular-nums">{engine.state.count}</div>
               <div className="text-[11px] tracking-[0.2em] text-neutral-500">OF {Number.isFinite(target) ? target : '—'}</div>
-              <div className="mt-2.5 text-[17px] font-medium tracking-[0.1em]" style={{ color: cueColor }}>{cue}</div>
+              <div
+                className="mt-2.5 px-3.5 py-1.5 rounded-full text-[15px] font-semibold tracking-[0.08em]"
+                style={{ color: cueColor, background: engine.state.running ? EXERCISE_TINT_BG[exercise] : 'transparent' }}
+              >
+                {cue}
+              </div>
             </div>
           </div>
         )}
 
-        {counterVariant === 'ladderLane' && (
+        {!showLanding && counterVariant === 'ladderLane' && (
           <div onClick={engine.tapRep} className="flex items-center gap-5 cursor-pointer select-none">
             <div className="flex flex-col-reverse gap-1 h-[300px] justify-start">
               {Array.from({ length: 12 }, (_, i) => {
                 const h = 8 + Math.round(6 * Math.sin(i / 2));
                 const lit = i < engine.state.count;
-                return <span key={i} style={{ height: h, background: lit ? '#9184d9' : 'rgba(233,233,237,.10)' }} className="w-[52px] rounded block transition-colors" />;
+                return <span key={i} style={{ height: h, background: lit ? exColor : 'rgba(233,233,237,.10)' }} className="w-[52px] rounded block transition-colors" />;
               })}
             </div>
             <div className="flex flex-col gap-1">
               <div className="text-[70px] leading-[.95] font-medium tracking-[-0.04em] tabular-nums">{engine.state.count}</div>
               <div className="text-[11px] tracking-[0.2em] text-neutral-500">OF {Number.isFinite(target) ? target : '—'} REPS</div>
-              <div className="mt-2.5 text-[17px] font-medium tracking-[0.1em]" style={{ color: cueColor }}>{cue}</div>
+              <div
+                className="mt-2.5 px-3.5 py-1.5 rounded-full text-[15px] font-semibold tracking-[0.08em]"
+                style={{ color: cueColor, background: engine.state.running ? EXERCISE_TINT_BG[exercise] : 'transparent' }}
+              >
+                {cue}
+              </div>
             </div>
           </div>
         )}
@@ -315,6 +385,7 @@ export default function Session() {
           variant="primary"
           onClick={() => { if (!engine.state.running) setReady(3); else engine.toggleRun(); }}
           className="!w-[78px] !h-[78px] !p-0 rounded-full text-2xl"
+          style={{ borderColor: exColor, color: exColor }}
         >
           {engine.state.running ? '❚❚' : '▶'}
         </Button>

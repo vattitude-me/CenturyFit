@@ -108,6 +108,18 @@ export const EXERCISE_LABELS: Record<Exercise, string> = {
   squat: 'Squats',
 };
 
+/** Per-exercise visual identity, shared across Today/Progress/Session so the
+ * three exercises stay visually distinct everywhere using the same accent
+ * ramp (push=accent, pull=accent-400, squat=accent-700). */
+export const EXERCISE_ICON: Record<Exercise, string> = { push: '⌃', pull: '⌄', squat: '◍' };
+export const EXERCISE_COLOR: Record<Exercise, string> = { push: '#9184d9', pull: '#b5abfc', squat: '#5d5294' };
+export const EXERCISE_CHIP_BG: Record<Exercise, string> = { push: '#423a6a', pull: '#3f424d', squat: '#2b2741' };
+export const EXERCISE_TINT_BG: Record<Exercise, string> = {
+  push: 'rgba(145,132,217,.16)',
+  pull: 'rgba(181,171,252,.16)',
+  squat: 'rgba(93,82,148,.22)',
+};
+
 export const PULL_RUNG_LABELS: Record<PullRung, string> = {
   0: 'Rows',
   1: 'Negatives',
