@@ -5,14 +5,15 @@ const RAW_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/mai
 export interface ExerciseReference {
   name: string;
   instructions: string[];
+  video: string;
   images: string[];
   source: string;
   sourceLabel: string;
 }
 
-/** Public-domain exercise data from yuhonas/free-exercise-db (Free Exercise DB),
- * an open bodyweight/strength exercise dataset, linked directly rather than
- * embedded — no video assets ship with the app. */
+/** Video demos are our own footage in public/videos/. Instructions/fallback
+ * images are public-domain data from yuhonas/free-exercise-db, linked
+ * directly rather than embedded. */
 export const EXERCISE_REFERENCE: Record<Exercise, ExerciseReference> = {
   push: {
     name: 'Push-ups',
@@ -21,6 +22,7 @@ export const EXERCISE_REFERENCE: Record<Exercise, ExerciseReference> = {
       'Lower yourself until your chest nearly touches the floor while inhaling.',
       'Press back up to the start while exhaling, squeezing your chest at the top.',
     ],
+    video: '/videos/push.mp4',
     images: [`${RAW_BASE}/Pushups/0.jpg`, `${RAW_BASE}/Pushups/1.jpg`],
     source: 'https://github.com/yuhonas/free-exercise-db',
     sourceLabel: 'Free Exercise DB (public domain)',
@@ -32,6 +34,7 @@ export const EXERCISE_REFERENCE: Record<Exercise, ExerciseReference> = {
       'Pull your torso up until the bar reaches your upper chest, squeezing your back at the top.',
       'Lower back down under control until your arms are fully extended.',
     ],
+    video: '/videos/pull.mp4',
     images: [`${RAW_BASE}/Pullups/0.jpg`, `${RAW_BASE}/Pullups/1.jpg`],
     source: 'https://github.com/yuhonas/free-exercise-db',
     sourceLabel: 'Free Exercise DB (public domain)',
@@ -43,6 +46,7 @@ export const EXERCISE_REFERENCE: Record<Exercise, ExerciseReference> = {
       'Flex your knees and hips, sitting back as if into a chair, keeping your chest up.',
       'Go as deep as you comfortably can, then reverse the motion back to standing.',
     ],
+    video: '/videos/squat.mp4',
     images: [`${RAW_BASE}/Bodyweight_Squat/0.jpg`, `${RAW_BASE}/Bodyweight_Squat/1.jpg`],
     source: 'https://github.com/yuhonas/free-exercise-db',
     sourceLabel: 'Free Exercise DB (public domain)',

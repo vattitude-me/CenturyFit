@@ -343,16 +343,21 @@ export default function Session() {
                 <X size={15} />
               </span>
             </div>
-            <div className="flex gap-2">
-              {formRef.images.map((src) => (
-                <img key={src} src={src} alt={formRef.name} className="flex-1 rounded-[12px] object-cover h-[140px] bg-neutral-900" />
-              ))}
-            </div>
+            <video
+              key={formRef.video}
+              src={formRef.video}
+              controls
+              loop
+              playsInline
+              autoPlay
+              className="w-full rounded-[12px] bg-black"
+              style={{ maxHeight: 260 }}
+            />
             <ol className="flex flex-col gap-1.75 text-[13px] leading-[1.5] text-neutral-300 list-decimal list-inside">
               {formRef.instructions.map((step, i) => <li key={i}>{step}</li>)}
             </ol>
             <a href={formRef.source} target="_blank" rel="noreferrer" className="text-[11px] text-neutral-500 underline">
-              Source: {formRef.sourceLabel}
+              Instructions: {formRef.sourceLabel}
             </a>
           </div>
         </div>
