@@ -80,6 +80,7 @@ export interface SetLog {
 }
 
 export interface StreakData {
+  id: string;
   current: number;
   longest: number;
   lastActiveDate: string;
@@ -95,6 +96,7 @@ export interface DayRecord {
 }
 
 export interface AppSettings {
+  id: string;
   counterVariant: CounterVariant;
   dashboardVariant: DashboardVariant;
   voice: boolean;

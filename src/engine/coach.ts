@@ -321,22 +321,34 @@ export function updateStreak(streak: StreakData, today: string, creditedToday: b
     if (graceAvailable) {
       return { ...streak, graceDaysUsedInWindow: streak.graceDaysUsedInWindow + 1 };
     }
-    return { current: 0, longest: streak.longest, lastActiveDate: '', graceDaysUsedInWindow: 0, windowStartDate: '' };
+    return { ...streak, current: 0, lastActiveDate: '', graceDaysUsedInWindow: 0, windowStartDate: '' };
   }
 
   if (streak.lastActiveDate === today) return streak;
 
+  // updateStreak only ever runs on days the user actually logs reps — there's
+  // no background job to mark a fully-skipped day as missed. So a gap here
+  // (days since last active) is the only place multi-day absences are ever
+  // seen, and a gap of exactly 2 is what "one missed day" looks like. Larger
+  // gaps must reset regardless of grace — otherwise a week-long absence would
+  // be forgiven for free just because no grace day had been spent yet.
   const gap = streak.lastActiveDate ? daysBetween(streak.lastActiveDate, today) : Infinity;
-  const continued = gap === 1 || (gap > 1 && streak.graceDaysUsedInWindow < GRACE_DAYS_ALLOWED);
+  const windowStart = streak.windowStartDate || streak.lastActiveDate;
+  const withinGraceWindow = Boolean(windowStart) && daysBetween(windowStart, today) <= GRACE_WINDOW_DAYS;
+  const graceAvailable = withinGraceWindow && streak.graceDaysUsedInWindow < GRACE_DAYS_ALLOWED;
+  const continued = gap === 1 || (gap === 2 && graceAvailable);
+  const usedGrace = gap === 2 && continued;
+
   const current = continued ? streak.current + 1 : 1;
   const windowStartDate = continued ? (streak.windowStartDate || today) : today;
   const resetGraceWindow = !continued || daysBetween(windowStartDate, today) > GRACE_WINDOW_DAYS;
 
   return {
+    ...streak,
     current,
     longest: Math.max(streak.longest, current),
     lastActiveDate: today,
-    graceDaysUsedInWindow: resetGraceWindow ? 0 : streak.graceDaysUsedInWindow,
+    graceDaysUsedInWindow: resetGraceWindow ? 0 : streak.graceDaysUsedInWindow + (usedGrace ? 1 : 0),
     windowStartDate: resetGraceWindow ? today : windowStartDate,
   };
 }

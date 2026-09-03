@@ -27,12 +27,45 @@ class HundredDB extends Dexie {
       settings: 'defaultTempo',
       streaks: 'current',
     });
+
+    // v1 keyed settings/streaks by a value field (defaultTempo / current), so
+    // every save whose value changed inserted a new row instead of
+    // overwriting — put() decides insert-vs-update by primary key. Reads did
+    // `.toCollection().first()` with no defined order, so the streak/settings
+    // shown could jump between stale rows. v2 keys both by a fixed 'id' and
+    // collapses any duplicate rows an affected install accumulated, keeping
+    // the streak with the highest `current` and the last-written settings row.
+    this.version(2).stores({
+      profile: 'id',
+      baselineLogs: 'id, exercise, testedAt',
+      dayPlans: 'id, date',
+      setLogs: 'id, date, exercise, completedAt',
+      dayRecords: 'date',
+      settings: 'id',
+      streaks: 'id',
+    }).upgrade(async (tx) => {
+      const settingsRows = await tx.table('settings').toArray();
+      await tx.table('settings').clear();
+      const lastSettings = settingsRows[settingsRows.length - 1];
+      if (lastSettings) await tx.table('settings').put({ ...lastSettings, id: 'singleton' });
+
+      const streakRows = await tx.table('streaks').toArray();
+      await tx.table('streaks').clear();
+      const bestStreak = streakRows.reduce<typeof streakRows[number] | undefined>(
+        (best, row) => (!best || row.current > best.current ? row : best),
+        undefined
+      );
+      if (bestStreak) await tx.table('streaks').put({ ...bestStreak, id: 'singleton' });
+    });
   }
 }
 
 export const db = new HundredDB();
 
+const SINGLETON_ID = 'singleton';
+
 const DEFAULT_SETTINGS: AppSettings = {
+  id: SINGLETON_ID,
   counterVariant: 'cadenceRing',
   dashboardVariant: 'rings',
   voice: true,
@@ -45,6 +78,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 const DEFAULT_STREAK: StreakData = {
+  id: SINGLETON_ID,
   current: 0,
   longest: 0,
   lastActiveDate: '',
@@ -116,21 +150,21 @@ export async function getAllDayRecords(): Promise<DayRecord[]> {
 }
 
 export async function getSettings(): Promise<AppSettings> {
-  const s = await db.settings.toCollection().first();
+  const s = await db.settings.get(SINGLETON_ID);
   return s ? { ...DEFAULT_SETTINGS, ...s } : DEFAULT_SETTINGS;
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
-  await db.settings.put(settings);
+  await db.settings.put({ ...settings, id: SINGLETON_ID });
 }
 
 export async function getStreak(): Promise<StreakData> {
-  const s = await db.streaks.toCollection().first();
+  const s = await db.streaks.get(SINGLETON_ID);
   return s ?? DEFAULT_STREAK;
 }
 
 export async function saveStreak(streak: StreakData): Promise<void> {
-  await db.streaks.put(streak);
+  await db.streaks.put({ ...streak, id: SINGLETON_ID });
 }
 
 export async function resetAllData(): Promise<void> {
