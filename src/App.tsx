@@ -1,5 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { getProfile } from './db';
 import { useReminders } from './hooks/useReminders';
 import type { Profile } from './types';
@@ -24,6 +27,17 @@ export default function App() {
   useEffect(() => {
     getProfile().then((p) => setProfile(p ?? null));
   }, []);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    StatusBar.setStyle({ style: Style.Dark });
+    StatusBar.setBackgroundColor({ color: '#161826' });
+  }, []);
+
+  useEffect(() => {
+    if (profile === undefined || !Capacitor.isNativePlatform()) return;
+    SplashScreen.hide();
+  }, [profile]);
 
   if (profile === undefined) {
     return (

@@ -1,32 +1,68 @@
-# React + TypeScript + Vite
+# Hundred
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+3 to 100. Push-ups, pull-ups, squats — every day.
 
-Currently, two official plugins are available:
+An offline-first coaching PWA that ramps you from a handful of reps to 100
+a day, spread across windows through your day. React 19 + Vite + TypeScript +
+Tailwind v4 + Dexie (IndexedDB), installable as a PWA on desktop/mobile web
+and packaged as a native Android app via Capacitor.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Development
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev          # http://localhost:5173
+npm run build         # production build to dist/ (auto-bumps patch version)
+npm run lint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Android (Capacitor)
+
+The `android/` directory is a native Capacitor project that wraps the built
+web app (`dist/`) in a WebView shell — same HashRouter-based SPA, same Dexie
+IndexedDB storage, no server required. It's checked into the repo (standard
+Capacitor practice — it can carry native customizations), but build output,
+local SDK paths, and signing secrets are gitignored.
+
+### One-time setup
+
+Needs a JDK compatible with the Android Gradle Plugin (17–21; **not** 26) and
+the Android SDK command-line tools:
+
+```bash
+brew install openjdk@21 android-commandlinetools
+sdkmanager --sdk_root="$(brew --prefix)/share/android-commandlinetools" \
+  "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+echo "sdk.dir=$(brew --prefix)/share/android-commandlinetools" > android/local.properties
+```
+
+Release builds are signed. Generate a keystore once and keep it **outside
+git** and backed up somewhere durable — losing it means you can never ship
+an update to the same `applicationId` again, only a new listing:
+
+```bash
+keytool -genkeypair -v -keystore android/keystore/release.keystore \
+  -alias hundred -keyalg RSA -keysize 2048 -validity 10000
+cp android/keystore.properties.example android/keystore.properties
+# then fill in the real store/key passwords in android/keystore.properties
+```
+
+### Building
+
+```bash
+export JAVA_HOME=$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home
+export ANDROID_HOME=$(brew --prefix)/share/android-commandlinetools
+
+npm run build && npx cap sync android
+cd android
+./gradlew assembleDebug      # unsigned, for sideloading/testing
+./gradlew assembleRelease    # signed with keystore.properties, for distribution
+```
+
+Output:
+- Debug: `android/app/build/outputs/apk/debug/app-debug.apk`
+- Release: `android/app/build/outputs/apk/release/app-release.apk`
+
+After changing app icons or the web app itself, re-run
+`npm run build && npx cap sync android` before rebuilding the APK — Capacitor
+copies `dist/` into the native project's assets, it doesn't read it live.
