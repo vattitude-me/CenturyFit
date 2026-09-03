@@ -8,6 +8,7 @@ import IconChip from '../components/IconChip';
 import { useCadenceEngine } from '../hooks/useCadenceEngine';
 import { getSettings, saveSetLog, getDayPlan, saveDayPlan, saveBaselineLog } from '../db';
 import { recordDayProgress } from '../engine/planGenerator';
+import { localDate, localTime } from '../engine/dates';
 import { EXERCISE_REFERENCE } from '../data/exerciseReference';
 import type { CounterMode, Exercise, CounterVariant, WindowItem } from '../types';
 import { EXERCISE_LABELS, EXERCISE_ICON, EXERCISE_COLOR, EXERCISE_CHIP_BG, EXERCISE_TINT_BG, TEMPO_RANGE } from '../types';
@@ -107,7 +108,7 @@ export default function Session() {
   const hasNextItem = itemIndex < queue.length - 1;
 
   const handleBank = (reps: number) => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDate();
     if (isBaseline) {
       saveBaselineLog({ id: exercise, exercise, maxReps: reps, testedAt: Date.now() });
       navigate('/onboarding/baseline', { replace: true });
@@ -116,7 +117,7 @@ export default function Session() {
     saveSetLog({
       id: `${Date.now()}`,
       date: today,
-      at: new Date().toTimeString().slice(0, 5),
+      at: localTime(),
       exercise,
       reps,
       targetReps: Number.isFinite(target) ? target : reps,

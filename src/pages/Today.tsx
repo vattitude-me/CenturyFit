@@ -8,6 +8,7 @@ import Button from '../components/Button';
 import { TimelineRow, type TimelineDotState } from '../components/Timeline';
 import { getProfile, getSettings, getSetLogs } from '../db';
 import { generateDayPlan, reflowMissedWindows } from '../engine/planGenerator';
+import { localDate, dayIndexFor } from '../engine/dates';
 import type { Exercise, Profile, DayPlan, DashboardVariant } from '../types';
 import { EXERCISE_LABELS, EXERCISE_COLOR } from '../types';
 
@@ -39,10 +40,10 @@ export default function Today() {
       if (cancelled) return;
       setDashboardVariant(settings.dashboardVariant);
 
-      const today = new Date().toISOString().slice(0, 10);
-      const dayIndex = Math.floor((Date.now() - p.createdAt) / 86400000);
+      const today = localDate();
+      const dayIndex = dayIndexFor(p.createdAt, today);
       let dp = await generateDayPlan(today, dayIndex, p);
-      if (p.reflow) dp = await reflowMissedWindows(dp);
+      if (p.reflow) dp = await reflowMissedWindows(dp, today);
       if (cancelled) return;
       setPlan(dp);
 
@@ -53,8 +54,16 @@ export default function Today() {
     };
 
     load();
-    const id = setInterval(load, 60_000);
-    return () => { cancelled = true; clearInterval(id); };
+    const id = setInterval(load, 30_000);
+    const onVisible = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
   }, []);
 
   if (!profile || !plan) return null;

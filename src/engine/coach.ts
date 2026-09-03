@@ -1,4 +1,5 @@
 import type { Exercise, Window, WindowItem, PullRung, SetModel, StreakData } from '../types';
+import { daysBetweenDates } from './dates';
 
 const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
 
@@ -148,10 +149,7 @@ const REBASELINE_INTERVAL_DAYS = 21;
 
 export function shouldRebaseline(lastRebaselineAt: string | undefined, today: string): boolean {
   if (!lastRebaselineAt) return false;
-  const last = new Date(lastRebaselineAt).getTime();
-  const now = new Date(today).getTime();
-  const days = Math.round((now - last) / (1000 * 60 * 60 * 24));
-  return days >= REBASELINE_INTERVAL_DAYS;
+  return daysBetweenDates(lastRebaselineAt, today) >= REBASELINE_INTERVAL_DAYS;
 }
 
 export interface RebaselineResult {
@@ -199,9 +197,7 @@ function clamp(n: number, min: number, max: number): number {
 const GRACE_WINDOW_DAYS = 14;
 const GRACE_DAYS_ALLOWED = 1;
 
-function daysBetween(a: string, b: string): number {
-  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
-}
+const daysBetween = daysBetweenDates;
 
 /** Recomputes streak state given today's credit status. Consecutive credited
  * days extend the streak; a single missed day within a rolling 14-day window

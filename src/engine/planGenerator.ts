@@ -4,13 +4,9 @@ import {
   computeStreakCredit, updateStreak,
 } from './coach';
 import { getDayPlan, saveDayPlan, getSetLogs, saveDayRecord, getStreak, saveStreak } from '../db';
+import { timeToMinutes, nowMinutes } from './dates';
 
 const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
-
-function timeToMinutes(t: string): number {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
 
 function wakingSpanHours(wake: string, sleep: string): number {
   const w = timeToMinutes(wake);
@@ -61,22 +57,21 @@ export async function generateDayPlan(
 
 const MISS_GRACE_MINUTES = 20;
 
-function timeToMinutesNow(t: string, now: Date): number {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m - (now.getHours() * 60 + now.getMinutes());
-}
-
 /** Reflows any pending window whose time has passed (with a grace period)
- * into the remaining pending windows for the day, and persists the result. */
-export async function reflowMissedWindows(plan: DayPlan): Promise<DayPlan> {
-  const now = new Date();
+ * into the remaining pending windows for the day, and persists the result.
+ * Only meaningful for today's plan — a past day's unfinished windows should
+ * stay as history, not get redistributed into a plan nobody will act on. */
+export async function reflowMissedWindows(plan: DayPlan, todayIso: string): Promise<DayPlan> {
+  if (plan.date !== todayIso) return plan;
+
+  const nowMin = nowMinutes();
   let next = plan;
   let changed = false;
 
   for (const original of plan.windows) {
     const current = next.windows.find((w) => w.id === original.id);
     if (!current || current.status !== 'pending') continue;
-    const minutesPast = -timeToMinutesNow(current.at, now);
+    const minutesPast = nowMin - timeToMinutes(current.at);
     if (minutesPast > MISS_GRACE_MINUTES) {
       next = { ...next, windows: reflow(next.windows, current.id) };
       changed = true;

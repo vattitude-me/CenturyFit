@@ -2,15 +2,12 @@ import { useEffect, useState } from 'react';
 import StatCard from '../components/StatCard';
 import IconChip from '../components/IconChip';
 import { getStreak, getAllDayRecords, getAllSetLogs } from '../db';
+import { localDate } from '../engine/dates';
 import type { StreakData, DayRecord, SetLog, Exercise } from '../types';
 import { EXERCISE_LABELS, EXERCISE_COLOR, EXERCISE_CHIP_BG, EXERCISE_ICON } from '../types';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const CAL_BG = ['rgba(233,233,237,.05)', '#2b2741', '#5d5294', '#9184d9'];
-
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
 
 function levelFromPct(pct: number): number {
   if (pct <= 0) return 0;
@@ -40,7 +37,7 @@ export default function Progress() {
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        week.push(byDate.get(isoDate(d)));
+        week.push(byDate.get(localDate(d)));
       }
       setWeekRecords(week);
 
@@ -48,7 +45,7 @@ export default function Progress() {
       for (let i = 27; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        month.push(byDate.get(isoDate(d)));
+        month.push(byDate.get(localDate(d)));
       }
       setMonthRecords(month);
     });
