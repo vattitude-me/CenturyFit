@@ -15,10 +15,23 @@ function useIsDesktop(): boolean {
   return isDesktop;
 }
 
+function useClock(): string {
+  const format = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const [time, setTime] = useState(() => format(new Date()));
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(format(new Date())), 15_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return time;
+}
+
 function StatusBar() {
+  const time = useClock();
   return (
     <div className="flex-none flex items-center justify-between px-6 pt-3.5 pb-1.5 text-[12.5px] font-semibold text-text">
-      <span>9:41</span>
+      <span>{time}</span>
       <div className="flex items-center gap-1">
         <span className="block w-4 h-2.5 rounded-sm border border-text/60" />
         <span className="block w-5.5 h-2.5 rounded-[3px] border border-text/60 relative">

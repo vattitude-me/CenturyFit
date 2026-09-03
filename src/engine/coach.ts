@@ -1,4 +1,4 @@
-import type { Exercise, Window, WindowItem, PullRung, SetModel } from '../types';
+import type { Exercise, Window, WindowItem, PullRung, SetModel, StreakData } from '../types';
 
 const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
 
@@ -194,4 +194,45 @@ export function computeStreakCredit(totalTarget: number, totalCompleted: number)
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
+}
+
+const GRACE_WINDOW_DAYS = 14;
+const GRACE_DAYS_ALLOWED = 1;
+
+function daysBetween(a: string, b: string): number {
+  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+}
+
+/** Recomputes streak state given today's credit status. Consecutive credited
+ * days extend the streak; a single missed day within a rolling 14-day window
+ * is forgiven once (grace day) before the streak resets. */
+export function updateStreak(streak: StreakData, today: string, creditedToday: boolean): StreakData {
+  if (!creditedToday) {
+    if (!streak.lastActiveDate) return streak;
+
+    const windowStart = streak.windowStartDate || streak.lastActiveDate;
+    const withinGraceWindow = daysBetween(windowStart, today) <= GRACE_WINDOW_DAYS;
+    const graceAvailable = withinGraceWindow && streak.graceDaysUsedInWindow < GRACE_DAYS_ALLOWED;
+
+    if (graceAvailable) {
+      return { ...streak, graceDaysUsedInWindow: streak.graceDaysUsedInWindow + 1 };
+    }
+    return { current: 0, longest: streak.longest, lastActiveDate: '', graceDaysUsedInWindow: 0, windowStartDate: '' };
+  }
+
+  if (streak.lastActiveDate === today) return streak;
+
+  const gap = streak.lastActiveDate ? daysBetween(streak.lastActiveDate, today) : Infinity;
+  const continued = gap === 1 || (gap > 1 && streak.graceDaysUsedInWindow < GRACE_DAYS_ALLOWED);
+  const current = continued ? streak.current + 1 : 1;
+  const windowStartDate = continued ? (streak.windowStartDate || today) : today;
+  const resetGraceWindow = !continued || daysBetween(windowStartDate, today) > GRACE_WINDOW_DAYS;
+
+  return {
+    current,
+    longest: Math.max(streak.longest, current),
+    lastActiveDate: today,
+    graceDaysUsedInWindow: resetGraceWindow ? 0 : streak.graceDaysUsedInWindow,
+    windowStartDate: resetGraceWindow ? today : windowStartDate,
+  };
 }

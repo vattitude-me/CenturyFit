@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getProfile } from './db';
+import { useReminders } from './hooks/useReminders';
 import type { Profile } from './types';
 import PhoneFrame from './components/PhoneFrame';
 import Layout from './components/Layout';
@@ -17,6 +18,7 @@ import Settings from './pages/Settings';
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
+  useReminders();
 
   useEffect(() => {
     getProfile().then((p) => setProfile(p ?? null));

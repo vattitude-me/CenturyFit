@@ -34,11 +34,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   voice: true,
   ticks: true,
   haptics: true,
-  camera: false,
   reminders: false,
   nudges: false,
   waitlistSquad: false,
-  defaultTempo: 2,
+  defaultTempo: 2.5,
 };
 
 const DEFAULT_STREAK: StreakData = {
@@ -77,6 +76,10 @@ export async function getSetLogs(date: string): Promise<SetLog[]> {
   return db.setLogs.where('date').equals(date).toArray();
 }
 
+export async function getAllSetLogs(): Promise<SetLog[]> {
+  return db.setLogs.toArray();
+}
+
 export async function saveSetLog(log: SetLog): Promise<void> {
   await db.setLogs.put(log);
 }
@@ -95,7 +98,7 @@ export async function getAllDayRecords(): Promise<DayRecord[]> {
 
 export async function getSettings(): Promise<AppSettings> {
   const s = await db.settings.toCollection().first();
-  return s ?? DEFAULT_SETTINGS;
+  return s ? { ...DEFAULT_SETTINGS, ...s } : DEFAULT_SETTINGS;
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {

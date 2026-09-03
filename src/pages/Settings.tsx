@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Mic, Camera, Timer, Vibrate, Bell, Sparkles, Lock, Info } from 'lucide-react';
+import { Mic, Timer, Vibrate, Bell, Sparkles, Lock, Info } from 'lucide-react';
 import Button from '../components/Button';
 import Toggle from '../components/Toggle';
 import ListRow from '../components/ListRow';
@@ -11,6 +11,9 @@ export default function Settings() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>(
+    'Notification' in window ? Notification.permission : 'unsupported'
+  );
 
   useEffect(() => {
     getProfile().then((p) => setProfile(p ?? null));
@@ -33,6 +36,18 @@ export default function Settings() {
     const next = { ...settings, ...patch };
     setSettings(next);
     await saveSettings(next);
+  };
+
+  const toggleReminders = async () => {
+    if (!settings.reminders) {
+      if (notifPermission === 'unsupported') return;
+      if (notifPermission !== 'granted') {
+        const result = await Notification.requestPermission();
+        setNotifPermission(result);
+        if (result !== 'granted') return;
+      }
+    }
+    await updateSetting({ reminders: !settings.reminders });
   };
 
   const handleReset = async () => {
@@ -95,10 +110,6 @@ export default function Settings() {
             trailing={<Toggle size="dense" on={settings.voice} onToggle={() => updateSetting({ voice: !settings.voice })} />}
           />
           <ListRow
-            icon={<Camera size={14} />} title="Camera auto-count" subtitle="Uses the front camera, on-device"
-            trailing={<Toggle size="dense" on={settings.camera} onToggle={() => updateSetting({ camera: !settings.camera })} />}
-          />
-          <ListRow
             icon={<Timer size={14} />} title="Metronome ticks" subtitle="Down / up cue tones"
             trailing={<Toggle size="dense" on={settings.ticks} onToggle={() => updateSetting({ ticks: !settings.ticks })} />}
           />
@@ -113,8 +124,21 @@ export default function Settings() {
         <span className="text-[11px] tracking-[0.1em] text-neutral-500">REMINDERS</span>
         <div className="rounded-[14px] bg-surface shadow-sm overflow-hidden">
           <ListRow
-            isFirst icon={<Bell size={14} />} title="Window reminders" subtitle="5 minutes before each window"
-            trailing={<Toggle size="dense" on={settings.reminders} onToggle={() => updateSetting({ reminders: !settings.reminders })} />}
+            isFirst icon={<Bell size={14} />} title="Window reminders"
+            subtitle={
+              notifPermission === 'unsupported'
+                ? 'Not supported in this browser'
+                : notifPermission === 'denied'
+                  ? 'Blocked — enable in browser settings'
+                  : '5 minutes before each window, while the app is open'
+            }
+            trailing={
+              <Toggle
+                size="dense"
+                on={settings.reminders && notifPermission === 'granted'}
+                onToggle={toggleReminders}
+              />
+            }
           />
           <ListRow icon={<Sparkles size={14} />} title="Motivational nudges" subtitle="Playful, max two a day" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
           <ListRow icon={<Lock size={14} />} title="Data & privacy" subtitle="On-device, export any time" trailing={<span className="text-[13px] text-neutral-600">›</span>} />

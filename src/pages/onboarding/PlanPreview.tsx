@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../../components/Button';
 import IconChip from '../../components/IconChip';
 import { getBaselineLogs, saveProfile } from '../../db';
-import { computeDay1Target } from '../../engine/coach';
+import { computeDay1Target, computeWeeklyTarget } from '../../engine/coach';
 import type { Exercise, Profile } from '../../types';
 import { EXERCISE_LABELS } from '../../types';
 
 const ICONS: Record<Exercise, string> = { push: '⌃', pull: '⌄', squat: '◍' };
 
+interface ScheduleState {
+  windows?: string[];
+  reflow?: boolean;
+}
+
 export default function PlanPreview() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const scheduleState = (location.state as ScheduleState | null) ?? {};
   const [maxes, setMaxes] = useState<Record<Exercise, number>>({ push: 8, pull: 1, squat: 22 });
 
   useEffect(() => {
@@ -27,7 +34,15 @@ export default function PlanPreview() {
     squat: computeDay1Target(maxes.squat),
   };
 
+  // The exercise furthest from 100 sets the pace — find the week it hits 100
+  // under the +8%/week ramp, since that's the one still climbing at the end.
+  const slowestDay1 = Math.min(day1.push, day1.pull, day1.squat);
+  let weeksTo100 = 0;
+  while (computeWeeklyTarget(slowestDay1, weeksTo100) < 100) weeksTo100++;
+  const totalDays = weeksTo100 * 7 || 7;
+
   const handleStart = async () => {
+    const windows = scheduleState.windows;
     const profile: Profile = {
       id: 'me',
       name: 'Alex',
@@ -35,10 +50,10 @@ export default function PlanPreview() {
       maxes,
       pullRung: 2,
       barAccess: 'doorway',
-      wake: '06:30',
+      wake: windows?.[0] ?? '06:30',
       sleep: '23:00',
-      windowCount: 4,
-      reflow: true,
+      windowCount: windows?.length ?? 4,
+      reflow: scheduleState.reflow ?? true,
       onboardingComplete: true,
       baselineComplete: true,
     };
@@ -55,7 +70,7 @@ export default function PlanPreview() {
   return (
     <div className="route-forward h-full overflow-y-auto flex flex-col px-5.5 pt-5.5 pb-6 gap-4">
       <div className="flex flex-col gap-1.5">
-        <div className="text-[10px] tracking-[0.14em] text-accent">YOUR PLAN · 84 DAYS</div>
+        <div className="text-[10px] tracking-[0.14em] text-accent">YOUR PLAN · {totalDays} DAYS</div>
         <div className="text-[27px] font-medium tracking-[-0.02em]">From {maxes.push} to 100</div>
         <div className="text-[13.5px] leading-[1.5] text-neutral-400">
           Ladders twice a week, everything else at a percentage of your max. It goes up about 8% a week, slow enough that you keep showing up.
@@ -78,7 +93,7 @@ export default function PlanPreview() {
           <circle cx="4" cy="100" r="4" fill="#9184d9" />
           <circle cx="296" cy="6" r="4" fill="#e9e9ed" />
           <text x="4" y="112" fill="#75798c" fontSize="9" fontFamily="Inter">Day 1 · {day1.push} reps</text>
-          <text x="296" y="112" fill="#75798c" fontSize="9" fontFamily="Inter" textAnchor="end">Day 84 · 100 reps</text>
+          <text x="296" y="112" fill="#75798c" fontSize="9" fontFamily="Inter" textAnchor="end">Day {totalDays} · 100 reps</text>
         </svg>
       </div>
 

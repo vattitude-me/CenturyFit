@@ -1,8 +1,9 @@
-import type { Exercise, DayPlan, Profile } from '../types';
+import type { Exercise, DayPlan, Profile, DayRecord } from '../types';
 import {
-  computeDay1Target, computeWeeklyTarget, computeWindowCount, splitIntoWindows,
+  computeDay1Target, computeWeeklyTarget, computeWindowCount, splitIntoWindows, reflow,
+  computeStreakCredit, updateStreak,
 } from './coach';
-import { getDayPlan, saveDayPlan } from '../db';
+import { getDayPlan, saveDayPlan, getSetLogs, saveDayRecord, getStreak, saveStreak } from '../db';
 
 const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
 
@@ -56,4 +57,58 @@ export async function generateDayPlan(
 
   await saveDayPlan(plan);
   return plan;
+}
+
+const MISS_GRACE_MINUTES = 20;
+
+function timeToMinutesNow(t: string, now: Date): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m - (now.getHours() * 60 + now.getMinutes());
+}
+
+/** Reflows any pending window whose time has passed (with a grace period)
+ * into the remaining pending windows for the day, and persists the result. */
+export async function reflowMissedWindows(plan: DayPlan): Promise<DayPlan> {
+  const now = new Date();
+  let next = plan;
+  let changed = false;
+
+  for (const original of plan.windows) {
+    const current = next.windows.find((w) => w.id === original.id);
+    if (!current || current.status !== 'pending') continue;
+    const minutesPast = -timeToMinutesNow(current.at, now);
+    if (minutesPast > MISS_GRACE_MINUTES) {
+      next = { ...next, windows: reflow(next.windows, current.id) };
+      changed = true;
+    }
+  }
+
+  if (changed) await saveDayPlan(next);
+  return next;
+}
+
+/** Recomputes today's DayRecord from banked sets against the plan's targets,
+ * and rolls that into the streak. Call after every banked set. */
+export async function recordDayProgress(plan: DayPlan): Promise<void> {
+  const logs = await getSetLogs(plan.date);
+  const completed: Record<Exercise, number> = { push: 0, pull: 0, squat: 0 };
+  for (const log of logs) completed[log.exercise] += log.reps;
+
+  let totalTarget = 0;
+  let totalCompleted = 0;
+  const exercises: DayRecord['exercises'] = { push: { target: 0, completed: 0 }, pull: { target: 0, completed: 0 }, squat: { target: 0, completed: 0 } };
+  for (const ex of EXERCISES) {
+    const target = plan.targets[ex] ?? 0;
+    exercises[ex] = { target, completed: completed[ex] };
+    totalTarget += target;
+    totalCompleted += Math.min(completed[ex], target);
+  }
+
+  const totalVolumePct = totalTarget > 0 ? Math.round((100 * totalCompleted) / totalTarget) : 0;
+  const streakCredit = computeStreakCredit(totalTarget, totalCompleted);
+
+  await saveDayRecord({ date: plan.date, exercises, totalVolumePct, streakCredit });
+
+  const streak = await getStreak();
+  await saveStreak(updateStreak(streak, plan.date, streakCredit));
 }

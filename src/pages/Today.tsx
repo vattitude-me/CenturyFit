@@ -6,7 +6,7 @@ import LitCard from '../components/LitCard';
 import Button from '../components/Button';
 import { TimelineRow, type TimelineDotState } from '../components/Timeline';
 import { getProfile, getSettings, getSetLogs } from '../db';
-import { generateDayPlan } from '../engine/planGenerator';
+import { generateDayPlan, reflowMissedWindows } from '../engine/planGenerator';
 import type { Exercise, Profile, DayPlan, DashboardVariant } from '../types';
 import { EXERCISE_LABELS } from '../types';
 
@@ -20,23 +20,32 @@ export default function Today() {
   const [done, setDone] = useState<Record<Exercise, number>>({ push: 0, pull: 0, squat: 0 });
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    const load = async () => {
       const p = await getProfile();
-      if (!p) return;
+      if (!p || cancelled) return;
       setProfile(p);
       const settings = await getSettings();
+      if (cancelled) return;
       setDashboardVariant(settings.dashboardVariant);
 
       const today = new Date().toISOString().slice(0, 10);
       const dayIndex = Math.floor((Date.now() - p.createdAt) / 86400000);
-      const dp = await generateDayPlan(today, dayIndex, p);
+      let dp = await generateDayPlan(today, dayIndex, p);
+      if (p.reflow) dp = await reflowMissedWindows(dp);
+      if (cancelled) return;
       setPlan(dp);
 
       const logs = await getSetLogs(today);
       const completed: Record<Exercise, number> = { push: 0, pull: 0, squat: 0 };
       for (const log of logs) completed[log.exercise] += log.reps;
-      setDone(completed);
-    })();
+      if (!cancelled) setDone(completed);
+    };
+
+    load();
+    const id = setInterval(load, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   if (!profile || !plan) return null;
@@ -50,21 +59,22 @@ export default function Today() {
 
   const totalLeft = rings.reduce((a, r) => a + Math.max(0, r.target - r.done), 0);
 
-  const nextWindow = plan.windows.find((w) => w.status === 'pending');
+  const nextWindow = plan.windows.find((w) => w.status === 'pending' || w.status === 'reflowed');
   const nextItem = nextWindow?.items[0];
   const nextExercise = nextItem?.exercise ?? 'push';
   const nextReps = nextItem?.reps ?? 12;
+
+  const sessionUrl = (w: typeof plan.windows[number]) =>
+    `/session?windowId=${w.id}&items=${encodeURIComponent(JSON.stringify(w.items))}`;
 
   const windowRows = plan.windows.map((w, i) => {
     const state: TimelineDotState = w.status === 'done' ? 'done' : (w === nextWindow ? 'now' : 'later');
     const item = w.items[0];
     return {
-      id: w.id + i, time: w.at, state,
+      id: w.id + i, time: w.at, state, window: w,
       name: item ? EXERCISE_LABELS[item.exercise] : '',
       sub: w.items.map((it) => `${it.reps} ${EXERCISE_LABELS[it.exercise].toLowerCase()}`).join(' + '),
       actionable: state === 'now',
-      exercise: item?.exercise ?? 'push',
-      reps: item?.reps ?? 0,
     };
   });
 
@@ -110,18 +120,28 @@ export default function Today() {
       )}
 
       <LitCard className="flex flex-col gap-2.75 p-4">
-        <div className="text-[10px] tracking-[0.12em] text-accent">UP NEXT · {nextWindow?.at ?? '—'}</div>
+        <div className="text-[10px] tracking-[0.12em] text-accent">
+          {nextWindow ? `UP NEXT · ${nextWindow.at}` : 'ALL WINDOWS DONE'}
+        </div>
         <div className="flex items-end justify-between gap-3">
           <div className="flex flex-col gap-0.75">
-            <div className="text-[21px] font-medium tracking-[-0.02em]">{nextReps} {EXERCISE_LABELS[nextExercise].toLowerCase()}</div>
-            <div className="text-[12.5px] text-neutral-400">Ladder 1–4 · about 4 min</div>
+            {nextWindow ? (
+              <>
+                <div className="text-[21px] font-medium tracking-[-0.02em]">{nextReps} {EXERCISE_LABELS[nextExercise].toLowerCase()}</div>
+                <div className="text-[12.5px] text-neutral-400">Ladder 1–4 · about 4 min</div>
+              </>
+            ) : (
+              <div className="text-[15px] text-neutral-400">Nothing left scheduled today. Nice work.</div>
+            )}
           </div>
-          <Button
-            variant="primary" className="h-11 px-5 text-[14.5px] flex-none"
-            onClick={() => navigate(`/session?exercise=${nextExercise}&target=${nextReps}`)}
-          >
-            Start
-          </Button>
+          {nextWindow && (
+            <Button
+              variant="primary" className="h-11 px-5 text-[14.5px] flex-none"
+              onClick={() => navigate(sessionUrl(nextWindow))}
+            >
+              Start
+            </Button>
+          )}
         </div>
       </LitCard>
 
@@ -139,7 +159,7 @@ export default function Today() {
             {w.actionable && (
               <Button
                 variant="secondary" className="h-7.5 px-3 text-xs flex-none"
-                onClick={() => navigate(`/session?exercise=${w.exercise}&target=${w.reps}`)}
+                onClick={() => navigate(sessionUrl(w.window))}
               >
                 Start
               </Button>

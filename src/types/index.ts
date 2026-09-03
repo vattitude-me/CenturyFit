@@ -2,7 +2,7 @@ export type Exercise = 'push' | 'pull' | 'squat';
 
 export type PullRung = 0 | 1 | 2 | 3 | 4; // rows, negatives, band, partials, full
 export type BarAccess = 'doorway' | 'park' | 'none';
-export type CounterMode = 'voice' | 'camera' | 'tap';
+export type CounterMode = 'voice' | 'tap';
 export type CounterVariant = 'cadenceRing' | 'bigNumeral' | 'ladderLane';
 export type DashboardVariant = 'rings' | 'fuelBars';
 export type SetModel = 'ladder' | 'percent';
@@ -88,12 +88,19 @@ export interface AppSettings {
   voice: boolean;
   ticks: boolean;
   haptics: boolean;
-  camera: boolean; // feature-flagged, default off
   reminders: boolean; // stub, default off
   nudges: boolean; // stub, default off
   waitlistSquad: boolean;
   defaultTempo: number; // 1.00–4.00 step .25, default 2.00
 }
+
+/** Per-exercise tempo bounds and default, in seconds/rep. Pull-ups need a
+ * slower floor than push/squat — 1.0s/rep is too fast to control a pull-up. */
+export const TEMPO_RANGE: Record<Exercise, { min: number; max: number; default: number }> = {
+  push: { min: 1, max: 4, default: 2.5 },
+  pull: { min: 2, max: 5, default: 3 },
+  squat: { min: 1, max: 4, default: 2 },
+};
 
 export const EXERCISE_LABELS: Record<Exercise, string> = {
   push: 'Push-ups',

@@ -1,37 +1,72 @@
 import { useEffect, useState } from 'react';
 import StatCard from '../components/StatCard';
 import IconChip from '../components/IconChip';
-import { getStreak, getAllDayRecords } from '../db';
-import type { StreakData } from '../types';
+import { getStreak, getAllDayRecords, getAllSetLogs } from '../db';
+import type { StreakData, DayRecord, SetLog, Exercise } from '../types';
+import { EXERCISE_LABELS } from '../types';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-const WEEK_BARS = [
-  [54, 32, 61], [68, 44, 72], [41, 25, 48], [79, 52, 83], [88, 60, 91], [36, 20, 40], [46, 29, 44],
-];
-
-const CAL_LEVELS = [0,3,3,2,3,1,0,3,3,3,2,3,3,0,1,3,3,3,3,2,0,3,3,2,3,3,3,3];
+const EXERCISE_COLOR: Record<Exercise, string> = { push: '#9184d9', pull: '#b5abfc', squat: '#5d5294' };
+const EXERCISE_CHIP: Record<Exercise, string> = { push: '#423a6a', pull: '#3f424d', squat: '#2b2741' };
+const EXERCISE_ICON: Record<Exercise, string> = { push: '⌃', pull: '⌄', squat: '◍' };
 const CAL_BG = ['rgba(233,233,237,.05)', '#2b2741', '#5d5294', '#9184d9'];
 
-const PBS = [
-  { name: 'Best push-up set', val: 21, delta: '+3', icon: '⌃', chip: '#423a6a' },
-  { name: 'Best pull-up set', val: 6, delta: '+2', icon: '⌄', chip: '#3f424d' },
-  { name: 'Best squat set', val: 48, delta: '+5', icon: '◍', chip: '#2b2741' },
-];
+function isoDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function levelFromPct(pct: number): number {
+  if (pct <= 0) return 0;
+  if (pct < 50) return 1;
+  if (pct < 90) return 2;
+  return 3;
+}
 
 export default function Progress() {
   const [streak, setStreak] = useState<StreakData | null>(null);
   const [totalReps, setTotalReps] = useState(0);
+  const [weekRecords, setWeekRecords] = useState<(DayRecord | undefined)[]>([]);
+  const [monthRecords, setMonthRecords] = useState<(DayRecord | undefined)[]>([]);
+  const [bests, setBests] = useState<Record<Exercise, number>>({ push: 0, pull: 0, squat: 0 });
 
   useEffect(() => {
     getStreak().then(setStreak);
+
     getAllDayRecords().then((records) => {
-      const total = records.reduce((sum, r) => {
-        return sum + Object.values(r.exercises).reduce((s, e) => s + e.completed, 0);
-      }, 0);
+      const total = records.reduce((sum, r) => sum + Object.values(r.exercises).reduce((s, e) => s + e.completed, 0), 0);
       setTotalReps(total);
+
+      const byDate = new Map(records.map((r) => [r.date, r]));
+      const today = new Date();
+
+      const week: (DayRecord | undefined)[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        week.push(byDate.get(isoDate(d)));
+      }
+      setWeekRecords(week);
+
+      const month: (DayRecord | undefined)[] = [];
+      for (let i = 27; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        month.push(byDate.get(isoDate(d)));
+      }
+      setMonthRecords(month);
+    });
+
+    getAllSetLogs().then((logs: SetLog[]) => {
+      const best: Record<Exercise, number> = { push: 0, pull: 0, squat: 0 };
+      for (const log of logs) best[log.exercise] = Math.max(best[log.exercise], log.reps);
+      setBests(best);
     });
   }, []);
+
+  const weekMaxCompleted = Math.max(1, ...weekRecords.flatMap((r) => r ? Object.values(r.exercises).map((e) => e.completed) : [0]));
+  const monthCompletePct = monthRecords.length
+    ? Math.round((100 * monthRecords.filter((r) => r?.streakCredit).length) / monthRecords.filter(Boolean).length || 0)
+    : 0;
 
   return (
     <div className="flex-1 h-full overflow-y-auto flex flex-col px-5 pt-4 pb-24 gap-3.75">
@@ -58,46 +93,58 @@ export default function Progress() {
             <span className="flex items-center gap-1"><i className="w-1.75 h-1.75 rounded-sm bg-[#5d5294] block" />Squat</span>
           </div>
         </div>
-        <div className="flex items-end justify-between gap-2 h-28">
-          {WEEK_BARS.map((day, i) => (
-            <div key={i} className="flex-1 flex items-end gap-0.5 h-full">
-              <i style={{ height: `${day[0]}%`, background: '#9184d9' }} className="flex-1 rounded-sm block" />
-              <i style={{ height: `${day[1]}%`, background: '#b5abfc' }} className="flex-1 rounded-sm block" />
-              <i style={{ height: `${day[2]}%`, background: '#5d5294' }} className="flex-1 rounded-sm block" />
+        {weekRecords.some(Boolean) ? (
+          <>
+            <div className="flex items-end justify-between gap-2 h-28">
+              {weekRecords.map((rec, i) => (
+                <div key={i} className="flex-1 flex items-end gap-0.5 h-full">
+                  {(['push', 'pull', 'squat'] as Exercise[]).map((ex) => {
+                    const completed = rec?.exercises[ex]?.completed ?? 0;
+                    const pct = Math.max(2, Math.round((100 * completed) / weekMaxCompleted));
+                    return (
+                      <i key={ex} style={{ height: `${pct}%`, background: EXERCISE_COLOR[ex] }} className="flex-1 rounded-sm block" />
+                    );
+                  })}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="flex justify-between text-[10px] text-neutral-600">
-          {DAY_LABELS.map((d, i) => <span key={i}>{d}</span>)}
-        </div>
+            <div className="flex justify-between text-[10px] text-neutral-600">
+              {DAY_LABELS.map((d, i) => <span key={i}>{d}</span>)}
+            </div>
+          </>
+        ) : (
+          <div className="text-[12px] text-neutral-500 py-6 text-center">No sets banked yet this week.</div>
+        )}
       </div>
 
       <div className="p-[15px] rounded-[15px] bg-surface shadow-sm flex flex-col gap-2.75">
         <div className="flex items-center justify-between">
           <span className="text-[13px] font-medium">Last 4 weeks</span>
-          <span className="text-[11px] text-neutral-500">86% complete</span>
+          <span className="text-[11px] text-neutral-500">{monthCompletePct}% complete</span>
         </div>
         <div className="grid grid-cols-7 gap-1.5">
-          {CAL_LEVELS.map((lvl, i) => (
-            <span
-              key={i}
-              style={{ background: CAL_BG[lvl], color: lvl >= 2 ? '#f5f4ff' : '#75798c' }}
-              className="aspect-square rounded-[7px] grid place-items-center text-[10px] tabular-nums"
-            >
-              {i + 1}
-            </span>
-          ))}
+          {monthRecords.map((rec, i) => {
+            const lvl = rec ? levelFromPct(rec.totalVolumePct) : 0;
+            return (
+              <span
+                key={i}
+                style={{ background: CAL_BG[lvl], color: lvl >= 2 ? '#f5f4ff' : '#75798c' }}
+                className="aspect-square rounded-[7px] grid place-items-center text-[10px] tabular-nums"
+              >
+                {i + 1}
+              </span>
+            );
+          })}
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
         <span className="text-[11px] tracking-[0.1em] text-neutral-500">PERSONAL BESTS</span>
-        {PBS.map((p) => (
-          <div key={p.name} className="flex items-center gap-2.75 px-3.25 py-3 rounded-xl bg-surface">
-            <IconChip bg={p.chip} size={30}>{p.icon}</IconChip>
-            <span className="flex-1 text-[13.5px]">{p.name}</span>
-            <span className="text-sm font-medium tabular-nums">{p.val}</span>
-            <span className="text-[10.5px] text-accent">{p.delta}</span>
+        {(['push', 'pull', 'squat'] as Exercise[]).map((ex) => (
+          <div key={ex} className="flex items-center gap-2.75 px-3.25 py-3 rounded-xl bg-surface">
+            <IconChip bg={EXERCISE_CHIP[ex]} size={30}>{EXERCISE_ICON[ex]}</IconChip>
+            <span className="flex-1 text-[13.5px]">Best {EXERCISE_LABELS[ex].toLowerCase().replace(/s$/, '')} set</span>
+            <span className="text-sm font-medium tabular-nums">{bests[ex]}</span>
           </div>
         ))}
       </div>

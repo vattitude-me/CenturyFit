@@ -1,9 +1,12 @@
 interface TempoSliderProps {
   tempo: number;
   onChange: (tempo: number) => void;
+  min?: number;
+  max?: number;
 }
 
-export default function TempoSlider({ tempo, onChange }: TempoSliderProps) {
+export default function TempoSlider({ tempo, onChange, min = 1, max = 4 }: TempoSliderProps) {
+  const mid = (min + max) / 2;
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between">
@@ -12,17 +15,17 @@ export default function TempoSlider({ tempo, onChange }: TempoSliderProps) {
       </div>
       <input
         type="range"
-        min={1}
-        max={4}
+        min={min}
+        max={max}
         step={0.25}
         value={tempo}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className="w-full min-h-[26px] p-0 bg-transparent border-0 accent-accent"
       />
       <div className="flex justify-between text-[10px] text-neutral-600">
-        <span>1.0 explosive</span>
-        <span>2.0 standard</span>
-        <span>4.0 grind</span>
+        <span>{min.toFixed(1)} explosive</span>
+        <span>{mid.toFixed(1)} standard</span>
+        <span>{max.toFixed(1)} grind</span>
       </div>
     </div>
   );
