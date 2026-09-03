@@ -18,9 +18,9 @@ export default function LogReps() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="text-[22px] font-medium tracking-[-0.02em]">What did you do?</div>
+        <div className="text-[22px] font-medium tracking-[-0.02em]">Bank some extra reps</div>
         <div className="text-[13.5px] leading-[1.5] text-neutral-400">
-          No window, no target — just count and bank it to today's total.
+          Outside your windows? No problem — count up and add it to today's total.
         </div>
       </div>
 

@@ -100,7 +100,7 @@ export default function Today() {
   });
 
   return (
-    <div className="flex-1 h-full flex flex-col px-5 pt-3.5 pb-24 gap-3.75">
+    <div className="flex-1 h-full overflow-y-auto flex flex-col px-5 pt-3.5 pb-24 gap-3.75">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <div className="text-[22px] font-medium tracking-[-0.02em]">{greeting(new Date().getHours())}, {profile.name}</div>
