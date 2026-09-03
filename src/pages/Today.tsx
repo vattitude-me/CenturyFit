@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import ProgressRing from '../components/ProgressRing';
 import FillBar from '../components/FillBar';
 import LitCard from '../components/LitCard';
@@ -9,6 +10,16 @@ import { getProfile, getSettings, getSetLogs } from '../db';
 import { generateDayPlan, reflowMissedWindows } from '../engine/planGenerator';
 import type { Exercise, Profile, DayPlan, DashboardVariant } from '../types';
 import { EXERCISE_LABELS, EXERCISE_COLOR } from '../types';
+
+const DAILY_GOAL_CAP = 100;
+
+function greeting(hour: number): string {
+  if (hour < 5) return 'Still up';
+  if (hour < 12) return 'Morning';
+  if (hour < 17) return 'Afternoon';
+  if (hour < 21) return 'Evening';
+  return 'Late one';
+}
 
 export default function Today() {
   const navigate = useNavigate();
@@ -55,7 +66,10 @@ export default function Today() {
     return { key: ex, name: EXERCISE_LABELS[ex], done: d, target: plan.targets[ex], pct, color: EXERCISE_COLOR[ex] };
   });
 
-  const totalLeft = rings.reduce((a, r) => a + Math.max(0, r.target - r.done), 0);
+  const totalDone = rings.reduce((a, r) => a + r.done, 0);
+  const dailyGoal = Math.max(DAILY_GOAL_CAP, rings.reduce((a, r) => a + r.target, 0));
+  const totalLeft = Math.max(0, dailyGoal - totalDone);
+  const goalHit = totalDone >= dailyGoal;
 
   const nextWindow = plan.windows.find((w) => w.status === 'pending' || w.status === 'reflowed');
   const nextItem = nextWindow?.items[0];
@@ -80,12 +94,27 @@ export default function Today() {
     <div className="flex-1 h-full flex flex-col px-5 pt-3.5 pb-24 gap-3.75">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <div className="text-[22px] font-medium tracking-[-0.02em]">Morning, {profile.name}</div>
-          <div className="text-[12.5px] text-neutral-500">Day {plan.dayIndex + 1} · {totalLeft} reps left today</div>
+          <div className="text-[22px] font-medium tracking-[-0.02em]">{greeting(new Date().getHours())}, {profile.name}</div>
+          <div className="text-[12.5px] text-neutral-500">
+            Day {plan.dayIndex + 1} · {totalDone} of {dailyGoal} reps today{goalHit ? ' · goal hit' : ''}
+          </div>
         </div>
-        <div className="flex items-center gap-1.25 px-2.5 py-1.5 rounded-full bg-accent-900 text-accent-200 text-xs font-medium flex-none">
-          <span className="text-xs">▲</span><span>12</span>
+        <button
+          onClick={() => navigate('/session/log')}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-900 text-accent-200 text-xs font-medium flex-none cursor-pointer"
+        >
+          <Plus size={13} strokeWidth={2.5} /><span>Log reps</span>
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-1.5 px-1">
+        <div className="flex items-baseline justify-between">
+          <span className="text-[11px] tracking-[0.1em] text-neutral-500">TODAY'S GOAL</span>
+          <span className="text-xs tabular-nums" style={{ color: goalHit ? '#d2cefd' : '#75798c' }}>
+            {totalDone} / {dailyGoal}
+          </span>
         </div>
+        <FillBar pct={Math.round((100 * totalDone) / dailyGoal)} color={goalHit ? '#9184d9' : '#5d5294'} height={11} />
       </div>
 
       {dashboardVariant === 'rings' ? (
@@ -113,7 +142,9 @@ export default function Today() {
               <FillBar pct={r.pct} color={r.color} />
             </div>
           ))}
-          <div className="text-[11.5px] text-neutral-500 mt-0.5">{totalLeft} reps left today</div>
+          <div className="text-[11.5px] text-neutral-500 mt-0.5">
+            {goalHit ? "Today's goal is done" : `${totalLeft} reps left to hit ${dailyGoal}`}
+          </div>
         </div>
       )}
 
@@ -169,7 +200,13 @@ export default function Today() {
       <div className="flex gap-2.5 items-center px-3.5 py-3.25 rounded-[13px] bg-accent-900">
         <span className="text-[15px]">✦</span>
         <span className="text-[12.5px] leading-[1.5] text-accent-200">
-          {totalLeft > 60 ? 'Big day still ahead. Twelve reps now is worth more than fifty tonight.' : "You're past the hump, the rest is downhill from here."}
+          {goalHit
+            ? "Today's 100 is banked. Anything extra is a bonus."
+            : !nextWindow
+              ? `No windows left today, but you're ${totalLeft} short of 100. Tap "Log reps" to finish it off.`
+              : totalLeft > 60
+                ? 'Big day still ahead. Twelve reps now is worth more than fifty tonight.'
+                : "You're past the hump, the rest is downhill from here."}
         </span>
       </div>
     </div>

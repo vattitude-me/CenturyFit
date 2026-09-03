@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Exercise } from '../types';
-
-const EXERCISE_CHIP_BG: Record<Exercise, string> = {
-  push: '#423a6a',
-  pull: '#3f424d',
-  squat: '#2b2741',
-};
+import { EXERCISE_CHIP_BG } from '../types';
 
 interface IconChipProps {
   children: ReactNode;

@@ -46,6 +46,7 @@ export default function Session() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const isBaseline = params.get('mode') === 'baseline';
+  const isAdhoc = params.get('adhoc') === '1';
   const windowId = params.get('windowId') ?? undefined;
   const ladder = params.get('ladder') || 'Set 3 of 5';
 
@@ -53,7 +54,7 @@ export default function Session() {
   const [itemIndex, setItemIndex] = useState(0);
   const item = queue[itemIndex];
   const exercise = item.exercise;
-  const target = isBaseline ? Infinity : item.reps;
+  const target = isBaseline || isAdhoc ? Infinity : item.reps;
   const exColor = EXERCISE_COLOR[exercise];
 
   const [mode, setMode] = useState<CounterMode>('voice');
@@ -122,7 +123,7 @@ export default function Session() {
       tempo: engine.state.tempo,
       mode,
       windowId,
-      source: 'session',
+      source: isAdhoc ? 'manual' : 'session',
       completedAt: Date.now(),
     });
     getDayPlan(today).then(async (plan) => {
@@ -246,7 +247,11 @@ export default function Session() {
               className="text-[10.5px] font-medium px-1.5 py-px rounded-[5px] -ml-1.5"
               style={{ background: EXERCISE_CHIP_BG[exercise], color: exColor }}
             >
-              {isBaseline ? 'Baseline test' : queue.length > 1 ? `${ladder} · item ${itemIndex + 1} of ${queue.length} · target ${target}` : `${ladder} · target ${target}`}
+              {isBaseline
+                ? 'Baseline test'
+                : isAdhoc
+                  ? 'Logged separately'
+                  : queue.length > 1 ? `${ladder} · item ${itemIndex + 1} of ${queue.length} · target ${target}` : `${ladder} · target ${target}`}
             </span>
           </div>
         </div>
@@ -293,7 +298,13 @@ export default function Session() {
                 {EXERCISE_LABELS[exercise].toUpperCase()}
               </div>
               <div className="text-[26px] font-medium tracking-[-0.02em]">
-                {engine.state.count > 0 ? `Paused at ${engine.state.count}` : (isBaseline ? 'Ready to test' : `${target} reps to go`)}
+                {engine.state.count > 0
+                  ? `Paused at ${engine.state.count}`
+                  : isBaseline
+                    ? 'Ready to test'
+                    : isAdhoc
+                      ? 'Ready when you are'
+                      : `${target} reps to go`}
               </div>
               <Button
                 variant="primary"

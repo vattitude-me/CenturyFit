@@ -11,6 +11,7 @@ import Equipment from './pages/onboarding/Equipment';
 import Schedule from './pages/onboarding/Schedule';
 import PlanPreview from './pages/onboarding/PlanPreview';
 import Session from './pages/Session';
+import LogReps from './pages/LogReps';
 import Today from './pages/Today';
 import Progress from './pages/Progress';
 import Squad from './pages/Squad';
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/onboarding/schedule" element={<Schedule />} />
         <Route path="/onboarding/plan" element={<PlanPreview />} />
         <Route path="/session" element={<Session />} />
+        <Route path="/session/log" element={<LogReps />} />
         <Route element={<Layout />}>
           <Route path="/today" element={<Today />} />
           <Route path="/progress" element={<Progress />} />
