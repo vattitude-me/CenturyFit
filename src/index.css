@@ -123,3 +123,11 @@ a:hover { color: var(--color-accent-400); }
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* Bottom padding for onboarding screens whose primary button sits flush to
+   the bottom of the viewport. On a gesture-nav Android phone the system's
+   home pill overlaps the last ~24px, so the button needs clearance above
+   the safe-area inset rather than just matching it. */
+.pb-action {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 2rem);
+}

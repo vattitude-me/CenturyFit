@@ -1,14 +1,126 @@
-import type { Exercise, Window, WindowItem, PullRung, SetModel, StreakData } from '../types';
+import type { Exercise, Window, WindowItem, PullRung, SetModel, StreakData, Tier, DayRecord } from '../types';
 import { daysBetweenDates } from './dates';
 
 const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
 
-export function computeDay1Target(maxReps: number): number {
-  return clamp(Math.round(maxReps * 3), 12, 40);
+// ---------------------------------------------------------------------------
+// Tier model
+//
+// The goal is a daily TOTAL: 100 reps a day mixed across the three exercises,
+// then 200, then 300 — at which point it's 100 of each and you're done. Each
+// exercise's share of the tier is weighted by your relative strength at it, so
+// someone who can't do a pull-up gets few pull-ups and more squats, and the
+// mix evens out toward 100/100/100 as the tiers climb.
+// ---------------------------------------------------------------------------
+
+/** Every exercise carries at least this share of the daily total, so no
+ * exercise ever drops out of the plan entirely — even a zero pull-up max. */
+const MIN_SHARE = 0.08;
+
+/** Per-exercise share weights, from each max relative to the total. Blended
+ * toward an even 1/3 split as the tier climbs, since tier 300 is by
+ * definition an even 100/100/100. */
+export function computeShares(
+  maxes: Record<Exercise, number>,
+  tier: Tier
+): Record<Exercise, number> {
+  // +1 so a zero max still gets a floor rather than dividing by zero.
+  const weights = EXERCISES.map((ex) => Math.max(0, maxes[ex] ?? 0) + 1);
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+
+  // 0 at tier 100 (fully strength-weighted) → 1 at tier 300 (fully even).
+  const evenness = (tier - 100) / 200;
+  const even = 1 / 3;
+
+  const raw: Record<Exercise, number> = { push: 0, pull: 0, squat: 0 };
+  EXERCISES.forEach((ex, i) => {
+    const weighted = weights[i] / totalWeight;
+    raw[ex] = Math.max(MIN_SHARE, weighted * (1 - evenness) + even * evenness);
+  });
+
+  const sum = EXERCISES.reduce((a, ex) => a + raw[ex], 0);
+  for (const ex of EXERCISES) raw[ex] = raw[ex] / sum;
+  return raw;
 }
 
-export function computeWeeklyTarget(day1Target: number, weekIndex: number): number {
-  return Math.min(100, Math.round(day1Target * Math.pow(1.08, weekIndex)));
+/** No single exercise ever exceeds 100 a day — that's the end goal, not a
+ * waypoint. Overflow from a lopsided split goes to the other two. */
+const PER_EXERCISE_CAP = 100;
+
+/** Splits a tier's daily total into per-exercise targets, weighted by relative
+ * strength. Rounds so the parts always sum to exactly the tier total. */
+export function computeTierTargets(
+  maxes: Record<Exercise, number>,
+  tier: Tier
+): Record<Exercise, number> {
+  const shares = computeShares(maxes, tier);
+  const targets: Record<Exercise, number> = { push: 0, pull: 0, squat: 0 };
+
+  let assigned = 0;
+  // Assign all but the last from the share, then give the remainder to the
+  // last one so rounding never leaves the total off by a rep or two.
+  EXERCISES.forEach((ex, i) => {
+    if (i === EXERCISES.length - 1) {
+      targets[ex] = tier - assigned;
+    } else {
+      targets[ex] = Math.max(1, Math.round(tier * shares[ex]));
+      assigned += targets[ex];
+    }
+  });
+
+  // Push anything above the cap onto whichever exercises still have headroom,
+  // so a very lopsided profile doesn't get asked for 108 pull-ups at tier 200.
+  let overflow = 0;
+  for (const ex of EXERCISES) {
+    if (targets[ex] > PER_EXERCISE_CAP) {
+      overflow += targets[ex] - PER_EXERCISE_CAP;
+      targets[ex] = PER_EXERCISE_CAP;
+    }
+  }
+  while (overflow > 0) {
+    const room = EXERCISES.filter((ex) => targets[ex] < PER_EXERCISE_CAP);
+    if (room.length === 0) break;
+    const each = Math.max(1, Math.floor(overflow / room.length));
+    for (const ex of room) {
+      if (overflow === 0) break;
+      const add = Math.min(each, overflow, PER_EXERCISE_CAP - targets[ex]);
+      targets[ex] += add;
+      overflow -= add;
+    }
+  }
+
+  return targets;
+}
+
+/** Days at a tier before promotion is even considered. */
+const TIER_MIN_DAYS = 14;
+/** Of the last N days, how many must have earned credit to promote. */
+const TIER_LOOKBACK_DAYS = 10;
+const TIER_PROMOTE_HITS = 7;
+
+/** Promotes 100 → 200 → 300 once the user has held the current tier for at
+ * least two weeks AND credited most of the last ten days. Returns the tier
+ * they should be on now. */
+export function checkTierPromotion(
+  tier: Tier,
+  tierStartedAt: string,
+  today: string,
+  recentRecords: DayRecord[]
+): Tier {
+  if (tier >= 300) return tier;
+  if (!tierStartedAt) return tier;
+  if (daysBetweenDates(tierStartedAt, today) < TIER_MIN_DAYS) return tier;
+
+  const recent = recentRecords
+    .filter((r) => r.date <= today)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, TIER_LOOKBACK_DAYS);
+
+  if (recent.length < TIER_LOOKBACK_DAYS) return tier;
+  const hits = recent.filter((r) => r.streakCredit).length;
+  if (hits < TIER_PROMOTE_HITS) return tier;
+
+  return (tier === 100 ? 200 : 300) as Tier;
 }
 
 export function computeWindowCount(wakingSpanHours: number, dailyVolume: number): 3 | 4 | 5 {
@@ -188,10 +300,6 @@ const STREAK_CREDIT_PCT = 0.7;
 export function computeStreakCredit(totalTarget: number, totalCompleted: number): boolean {
   if (totalTarget === 0) return false;
   return totalCompleted / totalTarget >= STREAK_CREDIT_PCT;
-}
-
-function clamp(n: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, n));
 }
 
 const GRACE_WINDOW_DAYS = 14;

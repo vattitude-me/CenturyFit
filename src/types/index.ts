@@ -2,6 +2,11 @@ export type Exercise = 'push' | 'pull' | 'squat';
 
 export type PullRung = 0 | 1 | 2 | 3 | 4; // rows, negatives, band, partials, full
 export type BarAccess = 'doorway' | 'park' | 'none';
+/** What the user rows with when they're on the Rows rung (or have no bar). */
+export type RowEquipment = 'table' | 'dumbbell' | 'kettlebell' | 'band';
+/** Daily total-rep tier. The goal ladder is 100 → 200 → 300 reps a day,
+ * mixed across the three exercises, ending at 100 of each. */
+export type Tier = 100 | 200 | 300;
 export type CounterMode = 'voice' | 'tap';
 export type CounterVariant = 'cadenceRing' | 'bigNumeral' | 'ladderLane';
 export type DashboardVariant = 'rings' | 'fuelBars';
@@ -15,6 +20,7 @@ export interface Profile {
   maxes: Record<Exercise, number>;
   pullRung: PullRung;
   barAccess: BarAccess;
+  rowEquipment?: RowEquipment;
   wake: string; // "06:30"
   sleep: string; // "23:00"
   windowCount: number;
@@ -22,6 +28,10 @@ export interface Profile {
   onboardingComplete: boolean;
   baselineComplete: boolean;
   lastRebaselineAt?: string; // ISO date
+  /** Current daily-total tier. Starts at 100, promotes to 200 then 300. */
+  tier: Tier;
+  /** Date the user reached the current tier, used to gate promotion. */
+  tierStartedAt: string; // YYYY-MM-DD
 }
 
 export interface BaselineLog {
@@ -51,6 +61,8 @@ export interface DayPlan {
   targets: Record<Exercise, number>;
   windows: Window[];
   model: SetModel;
+  /** The daily total this plan was built for (sum of targets). */
+  tier: Tier;
 }
 
 export interface SetLog {
@@ -127,3 +139,21 @@ export const PULL_RUNG_LABELS: Record<PullRung, string> = {
   3: 'Partials',
   4: 'Full',
 };
+
+/** What each rung actually asks of you, shown when picking a starting rung. */
+export const PULL_RUNG_HINTS: Record<PullRung, string> = {
+  0: "Can't hang yet — pull your bodyweight or a weight horizontally",
+  1: 'Jump to the top, lower yourself as slowly as you can',
+  2: 'A band under your feet takes some of the weight',
+  3: 'Half a rep from a dead hang, working toward the full range',
+  4: 'Chin over the bar from a dead hang, no help',
+};
+
+export const ROW_EQUIPMENT_LABELS: Record<RowEquipment, string> = {
+  table: 'Under a table or desk',
+  dumbbell: 'Dumbbell rows',
+  kettlebell: 'Kettlebell rows',
+  band: 'Resistance band rows',
+};
+
+export const TIERS: Tier[] = [100, 200, 300];

@@ -2,13 +2,19 @@ import { useEffect } from 'react';
 import { getProfile, getSettings } from '../db';
 import { generateDayPlan } from '../engine/planGenerator';
 import { localDate, dayIndexFor, timeToMinutes, nowMinutes } from '../engine/dates';
+import { isNative, scheduleWindowReminders, hasNotificationPermission } from '../engine/notifications';
 import { EXERCISE_LABELS } from '../types';
 
 const CHECK_INTERVAL_MS = 30_000;
 const LEAD_MINUTES = 5;
 
-/** Polls the day's plan while the app is open and fires a Notification
- * ~5 minutes before each pending window, once per window. */
+/**
+ * Keeps window reminders in sync with the day's plan.
+ *
+ * On Android these are scheduled with the OS, so they fire whether or not the
+ * app is running. On the web there's no such thing without a push server, so
+ * we fall back to polling and firing a Notification while the tab is open.
+ */
 export function useReminders() {
   useEffect(() => {
     const fired = new Set<string>();
@@ -16,7 +22,7 @@ export function useReminders() {
     const check = async () => {
       const settings = await getSettings();
       if (!settings.reminders) return;
-      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      if (!(await hasNotificationPermission())) return;
 
       const profile = await getProfile();
       if (!profile) return;
@@ -25,8 +31,13 @@ export function useReminders() {
       const dayIndex = dayIndexFor(profile.createdAt, today);
       const plan = await generateDayPlan(today, dayIndex, profile);
 
-      const nowMin = nowMinutes();
+      if (isNative()) {
+        // Hand the whole day to the OS; it will fire them without us.
+        await scheduleWindowReminders(plan);
+        return;
+      }
 
+      const nowMin = nowMinutes();
       for (const w of plan.windows) {
         if (w.status !== 'pending' && w.status !== 'reflowed') continue;
         const key = `${today}-${w.id}`;

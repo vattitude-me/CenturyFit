@@ -12,7 +12,12 @@ import { localDate, dayIndexFor } from '../engine/dates';
 import type { Exercise, Profile, DayPlan, DashboardVariant } from '../types';
 import { EXERCISE_LABELS, EXERCISE_COLOR } from '../types';
 
-const DAILY_GOAL_CAP = 100;
+/** Rough seconds per rep, used only for the "about N min" estimate. */
+const SECONDS_PER_REP = 4;
+
+function estimateMinutes(reps: number): number {
+  return Math.max(1, Math.round((reps * SECONDS_PER_REP) / 60));
+}
 
 function greeting(hour: number): string {
   if (hour < 5) return 'Still up';
@@ -76,24 +81,30 @@ export default function Today() {
   });
 
   const totalDone = rings.reduce((a, r) => a + r.done, 0);
-  const dailyGoal = Math.max(DAILY_GOAL_CAP, rings.reduce((a, r) => a + r.target, 0));
+  // The goal is the tier the plan was built for — the sum of its targets.
+  const dailyGoal: number = plan.tier ?? rings.reduce((a, r) => a + r.target, 0);
   const totalLeft = Math.max(0, dailyGoal - totalDone);
   const goalHit = totalDone >= dailyGoal;
 
   const nextWindow = plan.windows.find((w) => w.status === 'pending' || w.status === 'reflowed');
-  const nextItem = nextWindow?.items[0];
-  const nextExercise = nextItem?.exercise ?? 'push';
-  const nextReps = nextItem?.reps ?? 12;
+  const nextReps = nextWindow?.items.reduce((a, it) => a + it.reps, 0) ?? 0;
+  const nextSummary = nextWindow?.items
+    .map((it) => `${it.reps} ${EXERCISE_LABELS[it.exercise].toLowerCase()}`)
+    .join(' + ') ?? '';
 
   const sessionUrl = (w: typeof plan.windows[number]) =>
     `/session?windowId=${w.id}&items=${encodeURIComponent(JSON.stringify(w.items))}`;
 
   const windowRows = plan.windows.map((w, i) => {
     const state: TimelineDotState = w.status === 'done' ? 'done' : (w === nextWindow ? 'now' : 'later');
-    const item = w.items[0];
+    const reps = w.items.reduce((a, it) => a + it.reps, 0);
     return {
       id: w.id + i, time: w.at, state, window: w,
-      name: item ? EXERCISE_LABELS[item.exercise] : '',
+      // Name the window by its whole contents, not just the first exercise —
+      // a "Squats" row that actually contains push-ups too reads as a bug.
+      name: w.items.length > 1
+        ? `${reps} reps`
+        : w.items[0] ? EXERCISE_LABELS[w.items[0].exercise] : '',
       sub: w.items.map((it) => `${it.reps} ${EXERCISE_LABELS[it.exercise].toLowerCase()}`).join(' + '),
       actionable: state === 'now',
     };
@@ -105,7 +116,7 @@ export default function Today() {
         <div className="flex flex-col gap-0.5">
           <div className="text-[22px] font-medium tracking-[-0.02em]">{greeting(new Date().getHours())}, {profile.name}</div>
           <div className="text-[12.5px] text-neutral-500">
-            Day {plan.dayIndex + 1} · {totalDone} of {dailyGoal} reps today{goalHit ? ' · goal hit' : ''}
+            Day {plan.dayIndex + 1} · tier {dailyGoal} · {totalDone} of {dailyGoal} reps{goalHit ? ' · goal hit' : ''}
           </div>
         </div>
         <button
@@ -165,8 +176,10 @@ export default function Today() {
           <div className="flex flex-col gap-0.75">
             {nextWindow ? (
               <>
-                <div className="text-[21px] font-medium tracking-[-0.02em]">{nextReps} {EXERCISE_LABELS[nextExercise].toLowerCase()}</div>
-                <div className="text-[12.5px] text-neutral-400">Ladder 1–4 · about 4 min</div>
+                <div className="text-[21px] font-medium tracking-[-0.02em]">{nextSummary}</div>
+                <div className="text-[12.5px] text-neutral-400">
+                  {plan.model === 'ladder' ? 'Ladder sets' : 'Straight sets'} · about {estimateMinutes(nextReps)} min
+                </div>
               </>
             ) : (
               <div className="text-[15px] text-neutral-400">Nothing left scheduled today. Nice work.</div>
@@ -210,10 +223,10 @@ export default function Today() {
         <span className="text-[15px]">✦</span>
         <span className="text-[12.5px] leading-[1.5] text-accent-200">
           {goalHit
-            ? "Today's 100 is banked. Anything extra is a bonus."
+            ? `Today's ${dailyGoal} is banked. Anything extra is a bonus.`
             : !nextWindow
-              ? `No windows left today, but you're ${totalLeft} short of 100. Tap "Log reps" to finish it off.`
-              : totalLeft > 60
+              ? `No windows left today, but you're ${totalLeft} short of ${dailyGoal}. Tap "Log reps" to finish it off.`
+              : totalLeft > dailyGoal * 0.6
                 ? 'Big day still ahead. Twelve reps now is worth more than fifty tonight.'
                 : "You're past the hump, the rest is downhill from here."}
         </span>

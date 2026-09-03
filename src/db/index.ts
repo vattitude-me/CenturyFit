@@ -48,8 +48,23 @@ const DEFAULT_STREAK: StreakData = {
   windowStartDate: '',
 };
 
+/** Fills in fields added after a profile was first written, so an install from
+ * before the tier model doesn't come back with an undefined tier and render a
+ * NaN goal. */
+function migrateProfile(profile: Profile): Profile {
+  if (profile.tier && profile.tierStartedAt) return profile;
+  const createdDate = new Date(profile.createdAt || Date.now());
+  const iso = createdDate.toISOString().slice(0, 10);
+  return {
+    ...profile,
+    tier: profile.tier ?? 100,
+    tierStartedAt: profile.tierStartedAt || iso,
+  };
+}
+
 export async function getProfile(): Promise<Profile | undefined> {
-  return db.profile.toCollection().first();
+  const profile = await db.profile.toCollection().first();
+  return profile ? migrateProfile(profile) : undefined;
 }
 
 export async function saveProfile(profile: Profile): Promise<void> {

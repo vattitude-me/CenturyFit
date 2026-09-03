@@ -50,9 +50,12 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
   const isDesktop = useIsDesktop();
 
   if (!isDesktop) {
+    // No simulated status bar on a real phone — the OS draws its own clock and
+    // battery there, and ours would sit on top of it. We just reserve the
+    // safe-area height so content clears the notch/cutout.
     return (
       <div className="w-full h-[100dvh] bg-bg text-text flex flex-col overflow-hidden">
-        <StatusBar />
+        <div className="flex-none safe-top" />
         <div className="flex-1 overflow-hidden relative">{children}</div>
       </div>
     );

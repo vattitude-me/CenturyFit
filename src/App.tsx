@@ -5,10 +5,12 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { getProfile } from './db';
 import { useReminders } from './hooks/useReminders';
+import { useAndroidBackButton } from './hooks/useAndroidBackButton';
 import type { Profile } from './types';
 import PhoneFrame from './components/PhoneFrame';
 import Layout from './components/Layout';
 import Welcome from './pages/onboarding/Welcome';
+import Name from './pages/onboarding/Name';
 import Baseline from './pages/onboarding/Baseline';
 import Equipment from './pages/onboarding/Equipment';
 import Schedule from './pages/onboarding/Schedule';
@@ -23,6 +25,7 @@ import Settings from './pages/Settings';
 export default function App() {
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
   useReminders();
+  useAndroidBackButton();
 
   useEffect(() => {
     getProfile().then((p) => setProfile(p ?? null));
@@ -32,6 +35,10 @@ export default function App() {
     if (!Capacitor.isNativePlatform()) return;
     StatusBar.setStyle({ style: Style.Dark });
     StatusBar.setBackgroundColor({ color: '#161826' });
+    // Keep the WebView below the system status bar rather than drawing under
+    // it — the OS clock and battery own that strip, and overlaying would put
+    // app content underneath them.
+    StatusBar.setOverlaysWebView({ overlay: false });
   }, []);
 
   useEffect(() => {
@@ -55,6 +62,7 @@ export default function App() {
     <PhoneFrame>
       <Routes>
         <Route path="/onboarding/welcome" element={<Welcome />} />
+        <Route path="/onboarding/name" element={<Name />} />
         <Route path="/onboarding/baseline" element={<Baseline />} />
         <Route path="/onboarding/bar" element={<Equipment />} />
         <Route path="/onboarding/schedule" element={<Schedule />} />

@@ -47,27 +47,87 @@ export function playComplete(): void {
   });
 }
 
-let speaking = false;
+// ---------------------------------------------------------------------------
+// Speech
+//
+// Android WebView is much fussier than desktop browsers here:
+//   - getVoices() is empty until the TTS engine loads, and speaking before a
+//     voice exists silently drops the utterance with no error.
+//   - cancel() immediately followed by speak() in the same tick kills the new
+//     utterance too, so we must never cancel-then-speak synchronously.
+//   - The engine can wedge in a "speaking" state; onend doesn't always fire,
+//     so the busy flag needs a timeout-based release rather than trusting it.
+// ---------------------------------------------------------------------------
 
-/** Speaks the rep count. At tempo < 1.5s/rep, skips if the previous utterance
- * hasn't finished. Below 1.0s/rep, speaks only every other rep. */
-export function speakCount(n: number, tempo: number): void {
+let voicesReady = false;
+let preferredVoice: SpeechSynthesisVoice | null = null;
+
+function pickVoice(): void {
   if (!('speechSynthesis' in window)) return;
-  if (tempo < 1.5 && speaking) return;
-  if (tempo < 1.0 && n % 2 !== 0) return;
+  const voices = speechSynthesis.getVoices();
+  if (voices.length === 0) return;
+  voicesReady = true;
+  preferredVoice =
+    voices.find((v) => v.lang.startsWith('en') && v.localService) ??
+    voices.find((v) => v.lang.startsWith('en')) ??
+    voices[0];
+}
 
+/** Warms up the TTS engine. Must be called from a user gesture on Android —
+ * the first utterance after a tap is what unblocks the engine. */
+export function primeSpeech(): void {
+  if (!('speechSynthesis' in window)) return;
+  pickVoice();
+  if (!voicesReady) {
+    speechSynthesis.addEventListener('voiceschanged', pickVoice, { once: true });
+  }
   try {
-    const u = new SpeechSynthesisUtterance(String(n));
-    u.rate = 1.15;
-    u.volume = 0.9;
-    u.onstart = () => { speaking = true; };
-    u.onend = () => { speaking = false; };
-    u.onerror = () => { speaking = false; };
-    speechSynthesis.cancel();
+    // A near-silent utterance to unlock the engine within the gesture.
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0.01;
     speechSynthesis.speak(u);
   } catch {
     // speechSynthesis unavailable
   }
+}
+
+let speaking = false;
+let speakingTimer: ReturnType<typeof setTimeout> | null = null;
+
+function markSpeaking(estimatedMs: number): void {
+  speaking = true;
+  if (speakingTimer) clearTimeout(speakingTimer);
+  // Fallback release — Android's onend is unreliable, and a stuck flag would
+  // silence every subsequent count for the rest of the set.
+  speakingTimer = setTimeout(() => { speaking = false; }, estimatedMs);
+}
+
+function speak(text: string, estimatedMs: number): void {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    if (!voicesReady) pickVoice();
+    const u = new SpeechSynthesisUtterance(text);
+    if (preferredVoice) u.voice = preferredVoice;
+    u.lang = preferredVoice?.lang ?? 'en-US';
+    u.rate = 1.15;
+    u.volume = 1;
+    u.onend = () => { speaking = false; };
+    u.onerror = () => { speaking = false; };
+    markSpeaking(estimatedMs);
+    speechSynthesis.speak(u);
+  } catch {
+    speaking = false;
+  }
+}
+
+/** Speaks the rep count. Skips the count if the previous utterance is likely
+ * still in flight; below 1.0s/rep, speaks only every other rep. */
+export function speakCount(n: number, tempo: number): void {
+  if (!('speechSynthesis' in window)) return;
+  if (tempo < 1.0 && n % 2 !== 0) return;
+  // Never cancel-then-speak on Android; just skip this count instead.
+  if (speaking) return;
+  speak(String(n), 700);
 }
 
 const MILESTONE_PHRASES = {
@@ -77,15 +137,19 @@ const MILESTONE_PHRASES = {
 } as const;
 
 export function speakMilestone(kind: keyof typeof MILESTONE_PHRASES): void {
+  speak(MILESTONE_PHRASES[kind], 1200);
+}
+
+/** Stops any queued speech — used when leaving a session. */
+export function stopSpeech(): void {
   if (!('speechSynthesis' in window)) return;
   try {
-    const u = new SpeechSynthesisUtterance(MILESTONE_PHRASES[kind]);
-    u.rate = 1.15;
-    u.volume = 0.9;
-    speechSynthesis.speak(u);
+    speechSynthesis.cancel();
   } catch {
-    // speechSynthesis unavailable
+    // no-op
   }
+  speaking = false;
+  if (speakingTimer) clearTimeout(speakingTimer);
 }
 
 export function vibrate(pattern: number | number[] = 50): void {

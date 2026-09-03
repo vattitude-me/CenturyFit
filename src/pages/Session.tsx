@@ -12,7 +12,7 @@ import { localDate, localTime } from '../engine/dates';
 import { EXERCISE_REFERENCE } from '../data/exerciseReference';
 import type { CounterMode, Exercise, CounterVariant, WindowItem } from '../types';
 import { EXERCISE_LABELS, EXERCISE_ICON, EXERCISE_COLOR, EXERCISE_CHIP_BG, EXERCISE_TINT_BG, TEMPO_RANGE } from '../types';
-import { requestWakeLock, releaseWakeLock } from '../engine/audio';
+import { requestWakeLock, releaseWakeLock, primeSpeech, stopSpeech } from '../engine/audio';
 
 const RING_R = 112;
 const RING_DASH = 2 * Math.PI * RING_R; // 703.7
@@ -49,7 +49,6 @@ export default function Session() {
   const isBaseline = params.get('mode') === 'baseline';
   const isAdhoc = params.get('adhoc') === '1';
   const windowId = params.get('windowId') ?? undefined;
-  const ladder = params.get('ladder') || 'Set 3 of 5';
 
   const queue = useMemo(() => parseQueue(params), [params]);
   const [itemIndex, setItemIndex] = useState(0);
@@ -80,8 +79,16 @@ export default function Session() {
 
   useEffect(() => {
     requestWakeLock();
-    return () => { releaseWakeLock(); };
+    return () => { releaseWakeLock(); stopSpeech(); };
   }, []);
+
+  /** Starts the 3-2-1 countdown. Also the user gesture that unlocks Android's
+   * TTS engine — speech started later off a timer is silently dropped unless
+   * the engine was primed from within a real tap. */
+  const beginCountdown = () => {
+    if (voiceOn && mode === 'voice') primeSpeech();
+    setReady(3);
+  };
 
   useEffect(() => {
     if (!resting) return;
@@ -151,7 +158,10 @@ export default function Session() {
     mode,
     initialTempo: TEMPO_RANGE[exercise].default,
     voiceEnabled: voiceOn && mode === 'voice',
-    ticksEnabled: ticksOn,
+    // Ticks are the cadence metronome — they only make sense in voice-led mode,
+    // where the app is setting the pace. In manual mode the user sets their own
+    // pace by tapping, so a timed tick would just be noise.
+    ticksEnabled: ticksOn && mode === 'voice',
     hapticsEnabled: hapticsOn,
     onBank: handleBank,
   });
@@ -252,7 +262,9 @@ export default function Session() {
                 ? 'Baseline test'
                 : isAdhoc
                   ? 'Logged separately'
-                  : queue.length > 1 ? `${ladder} · item ${itemIndex + 1} of ${queue.length} · target ${target}` : `${ladder} · target ${target}`}
+                  : queue.length > 1
+                    ? `${itemIndex + 1} of ${queue.length} · target ${target}`
+                    : `Target ${target}`}
             </span>
           </div>
         </div>
@@ -311,7 +323,7 @@ export default function Session() {
                 variant="primary"
                 className="h-13 px-8 text-[15px] !rounded-full"
                 style={{ borderColor: exColor, color: exColor }}
-                onClick={() => setReady(3)}
+                onClick={beginCountdown}
               >
                 {engine.state.count > 0 ? '▶  Resume' : '▶  Start'}
               </Button>
@@ -395,7 +407,7 @@ export default function Session() {
         <Button variant="secondary" onClick={engine.decRep} className="!w-13 !h-13 !p-0 rounded-full text-xl">−</Button>
         <Button
           variant="primary"
-          onClick={() => { if (!engine.state.running) setReady(3); else engine.toggleRun(); }}
+          onClick={() => { if (!engine.state.running) beginCountdown(); else engine.toggleRun(); }}
           className="!w-[78px] !h-[78px] !p-0 rounded-full text-2xl"
           style={{ borderColor: exColor, color: exColor }}
         >

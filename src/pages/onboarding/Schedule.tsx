@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import Button from '../../components/Button';
 import Toggle from '../../components/Toggle';
+import { getBaselineLogs } from '../../db';
+import { computeTierTargets, splitIntoWindows } from '../../engine/coach';
+import type { Exercise } from '../../types';
+import { EXERCISE_LABELS } from '../../types';
 
 interface ProposedWindow {
   time: string;
@@ -10,19 +14,44 @@ interface ProposedWindow {
   len: string;
 }
 
-const INITIAL_PROPOSAL: ProposedWindow[] = [
-  { time: '07:10', body: '12 push-ups · ladder 1–4', len: 'about 4 min' },
-  { time: '09:40', body: '20 squats', len: 'about 3 min' },
-  { time: '12:30', body: '6 band-assisted pull-ups', len: 'about 5 min' },
-  { time: '17:45', body: '14 push-ups + 22 squats', len: 'about 6 min' },
-];
+const DEFAULT_MAXES: Record<Exercise, number> = { push: 12, pull: 3, squat: 25 };
+const WAKE = '06:30';
+const SLEEP = '23:00';
+const WINDOW_COUNT = 4;
+const SECONDS_PER_REP = 4;
+
+/** Builds the proposed day from the real tier-100 split, so what's previewed
+ * here is what actually gets scheduled — not illustrative placeholder text. */
+function buildProposal(maxes: Record<Exercise, number>): ProposedWindow[] {
+  const targets = computeTierTargets(maxes, 100);
+  return splitIntoWindows(targets, WINDOW_COUNT, WAKE, SLEEP).map((w) => {
+    const reps = w.items.reduce((a, it) => a + it.reps, 0);
+    return {
+      time: w.at,
+      body: w.items.map((it) => `${it.reps} ${EXERCISE_LABELS[it.exercise].toLowerCase()}`).join(' + '),
+      len: `about ${Math.max(1, Math.round((reps * SECONDS_PER_REP) / 60))} min`,
+    };
+  });
+}
 
 export default function Schedule() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navState = (location.state as Record<string, unknown> | null) ?? {};
+  const skipAhead = navState.skipAhead === true;
   const [reflow, setReflow] = useState(true);
-  const [proposal, setProposal] = useState(INITIAL_PROPOSAL);
+  const [proposal, setProposal] = useState<ProposedWindow[]>(() => buildProposal(DEFAULT_MAXES));
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draftTime, setDraftTime] = useState('');
+
+  useEffect(() => {
+    getBaselineLogs().then((logs) => {
+      if (logs.length === 0) return;
+      const m: Record<Exercise, number> = { ...DEFAULT_MAXES };
+      for (const log of logs) m[log.exercise] = log.maxReps;
+      setProposal(buildProposal(m));
+    });
+  }, []);
 
   const openEditor = (i: number) => {
     setEditingIndex(i);
@@ -40,24 +69,24 @@ export default function Schedule() {
 
   const handleBuildPlan = () => {
     navigate('/onboarding/plan', {
-      state: { windows: proposal.map((w) => w.time), reflow },
+      state: { ...navState, windows: proposal.map((w) => w.time), reflow },
     });
   };
 
   return (
-    <div className="route-forward h-full overflow-y-auto flex flex-col px-5.5 pt-4 pb-6 gap-3.75">
+    <div className="route-forward h-full overflow-y-auto flex flex-col px-5.5 pt-4 pb-action gap-3.75">
       <div className="flex items-center gap-3">
-        <Button variant="icon" onClick={() => navigate('/onboarding/bar')}><ChevronLeft size={18} /></Button>
+        <Button variant="icon" onClick={() => navigate('/onboarding/bar', { state: navState })}><ChevronLeft size={18} /></Button>
         <div className="flex-1 h-[3px] rounded-full bg-text/12 overflow-hidden">
           <i className="block h-full bg-accent" style={{ width: '100%' }} />
         </div>
-        <span className="text-[11px] text-neutral-500 flex-none">3 of 3</span>
+        <span className="text-[11px] text-neutral-500 flex-none">{skipAhead ? '3 of 3' : '4 of 4'}</span>
       </div>
 
       <div className="flex flex-col gap-1.5">
         <div className="text-[27px] font-medium tracking-[-0.02em]">Here's the day we'd build</div>
         <div className="text-[13.5px] leading-[1.5] text-neutral-400">
-          Four short windows, none longer than six minutes. Tap a time to change it and the coach reflows the rest.
+          Your 100 reps, cut into four short windows. Tap a time to change it and the coach reflows the rest.
         </div>
       </div>
 

@@ -1,9 +1,12 @@
 import type { Exercise, DayPlan, Profile, DayRecord } from '../types';
 import {
-  computeDay1Target, computeWeeklyTarget, computeWindowCount, splitIntoWindows, reflow,
-  computeStreakCredit, updateStreak,
+  computeWindowCount, splitIntoWindows, reflow,
+  computeStreakCredit, updateStreak, computeTierTargets, checkTierPromotion,
 } from './coach';
-import { getDayPlan, saveDayPlan, getSetLogs, saveDayRecord, getStreak, saveStreak } from '../db';
+import {
+  getDayPlan, saveDayPlan, getSetLogs, saveDayRecord, getStreak, saveStreak,
+  getAllDayRecords, saveProfile,
+} from '../db';
 import { timeToMinutes, nowMinutes } from './dates';
 
 const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
@@ -23,17 +26,11 @@ export async function generateDayPlan(
   const existing = await getDayPlan(date);
   if (existing) return existing;
 
-  const weekIndex = Math.floor(dayIndex / 7);
-  const targets: Record<Exercise, number> = { push: 0, pull: 0, squat: 0 };
-  let totalVolume = 0;
+  // Before building a new day, see whether the user has earned the next tier.
+  const tier = await resolveTier(profile, date);
 
-  for (const ex of EXERCISES) {
-    const max = profile.maxes[ex] ?? 0;
-    const day1Target = computeDay1Target(max);
-    const target = computeWeeklyTarget(day1Target, weekIndex);
-    targets[ex] = target;
-    totalVolume += target;
-  }
+  const targets = computeTierTargets(profile.maxes, tier);
+  const totalVolume = EXERCISES.reduce((a, ex) => a + targets[ex], 0);
 
   const span = wakingSpanHours(profile.wake, profile.sleep);
   const windowCount = profile.windowCount || computeWindowCount(span, totalVolume / EXERCISES.length);
@@ -49,10 +46,29 @@ export async function generateDayPlan(
     targets,
     windows,
     model,
+    tier,
   };
 
   await saveDayPlan(plan);
   return plan;
+}
+
+/** Returns the tier the user should be on today, persisting a promotion to
+ * the profile when they've earned one. */
+async function resolveTier(profile: Profile, date: string): Promise<Profile['tier']> {
+  const current = profile.tier ?? 100;
+  const startedAt = profile.tierStartedAt || '';
+  if (!startedAt) {
+    await saveProfile({ ...profile, tier: current, tierStartedAt: date });
+    return current;
+  }
+
+  const records = await getAllDayRecords();
+  const next = checkTierPromotion(current, startedAt, date, records);
+  if (next !== current) {
+    await saveProfile({ ...profile, tier: next, tierStartedAt: date });
+  }
+  return next;
 }
 
 const MISS_GRACE_MINUTES = 20;

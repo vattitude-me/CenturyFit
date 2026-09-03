@@ -4,20 +4,31 @@ import Button from '../components/Button';
 import Toggle from '../components/Toggle';
 import ListRow from '../components/ListRow';
 import { getProfile, saveProfile, getSettings, saveSettings, resetAllData } from '../db';
+import {
+  isNative, requestNotificationPermission, hasNotificationPermission,
+  scheduleWindowReminders, cancelWindowReminders,
+} from '../engine/notifications';
+import { generateDayPlan } from '../engine/planGenerator';
+import { localDate, dayIndexFor } from '../engine/dates';
 import type { Profile, AppSettings } from '../types';
+
+type NotifState = 'granted' | 'denied' | 'unsupported';
 
 export default function Settings() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>(
-    'Notification' in window ? Notification.permission : 'unsupported'
+  const [notifPermission, setNotifPermission] = useState<NotifState>(
+    isNative() || 'Notification' in window ? 'denied' : 'unsupported'
   );
 
   useEffect(() => {
     getProfile().then((p) => setProfile(p ?? null));
     getSettings().then(setSettings);
+    hasNotificationPermission().then((granted) => {
+      setNotifPermission((prev) => (prev === 'unsupported' ? prev : granted ? 'granted' : 'denied'));
+    });
   }, []);
 
   if (!profile || !settings) return null;
@@ -39,15 +50,26 @@ export default function Settings() {
   };
 
   const toggleReminders = async () => {
-    if (!settings.reminders) {
+    const turningOn = !settings.reminders;
+
+    if (turningOn) {
       if (notifPermission === 'unsupported') return;
       if (notifPermission !== 'granted') {
-        const result = await Notification.requestPermission();
-        setNotifPermission(result);
-        if (result !== 'granted') return;
+        const granted = await requestNotificationPermission();
+        setNotifPermission(granted ? 'granted' : 'denied');
+        if (!granted) return;
       }
     }
-    await updateSetting({ reminders: !settings.reminders });
+
+    await updateSetting({ reminders: turningOn });
+
+    // Push the change to the OS scheduler straight away rather than waiting for
+    // the next poll, so the toggle feels like it did something.
+    if (!profile) return;
+    const today = localDate();
+    const plan = await generateDayPlan(today, dayIndexFor(profile.createdAt, today), profile);
+    if (turningOn) await scheduleWindowReminders(plan);
+    else await cancelWindowReminders(plan);
   };
 
   const handleReset = async () => {
@@ -129,8 +151,12 @@ export default function Settings() {
               notifPermission === 'unsupported'
                 ? 'Not supported in this browser'
                 : notifPermission === 'denied'
-                  ? 'Blocked — enable in browser settings'
-                  : '5 minutes before each window, while the app is open'
+                  ? isNative()
+                    ? 'Blocked — enable in Android settings'
+                    : 'Blocked — enable in browser settings'
+                  : isNative()
+                    ? '5 minutes before each window'
+                    : '5 minutes before each window, while the app is open'
             }
             trailing={
               <Toggle
