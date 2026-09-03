@@ -122,6 +122,16 @@ export function useCadenceEngine(opts: CadenceEngineOptions) {
     });
   }, [run]);
 
+  // Re-registers the running interval whenever `tick` changes identity (e.g.
+  // voice/ticks/haptics/mode toggled mid-set) so a stale closure doesn't keep
+  // using the old settings until the next pause/resume.
+  useEffect(() => {
+    if (stateRef.current.running) {
+      run(true, stateRef.current.tempo);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
+
   const endSet = useCallback(() => {
     stop();
     const s = stateRef.current;
@@ -129,7 +139,15 @@ export function useCadenceEngine(opts: CadenceEngineOptions) {
     onBank(s.count);
   }, [stop, onBank]);
 
+  /** Clears count/phase/running for a new item (e.g. moving to the next
+   * exercise in a multi-item window), optionally re-seeding tempo. */
+  const reset = useCallback((tempo?: number) => {
+    stop();
+    milestonesFiredRef.current = new Set();
+    setState((s) => ({ count: 0, phase: 'up', running: false, tempo: tempo ?? s.tempo }));
+  }, [stop]);
+
   useEffect(() => () => stop(), [stop]);
 
-  return { state, toggleRun, tapRep, decRep, setTempo, endSet, stop };
+  return { state, toggleRun, tapRep, decRep, setTempo, endSet, stop, reset };
 }

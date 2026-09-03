@@ -152,16 +152,11 @@ export default function Session() {
     onBank: handleBank,
   });
 
-  useEffect(() => {
-    engine.setTempo(TEMPO_RANGE[exercise].default);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exercise]);
-
   const startNextItem = () => {
     setResting(false);
     setRestLeft(REST_SECONDS);
     setItemIndex((i) => i + 1);
-    engine.stop();
+    engine.reset(TEMPO_RANGE[queue[itemIndex + 1].exercise].default);
   };
 
   const cue = engine.state.running
