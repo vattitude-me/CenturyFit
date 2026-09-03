@@ -1,24 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    Rungs — a ladder climbing to the right, drawn as two rails plus four
+    rungs. The bottom three are lit in the accent, the top one is dim: the
+    rung still to climb. Mirrors the in-app pull-up path (Rows > Negatives >
+    Band > Partials > Full) and the 100 > 200 > 300 tier ladder.
+    Nocturne palette: #161826 ground, #9184d9 accent.
+  -->
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1A1128"/>
-      <stop offset="100%" style="stop-color:#0F0A1A"/>
+    <linearGradient id="ground" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2236"/>
+      <stop offset="65%" stop-color="#161826"/>
     </linearGradient>
-    <radialGradient id="orange" cx="35%" cy="30%" r="75%">
-      <stop offset="0%" style="stop-color:#FDBA74"/>
-      <stop offset="100%" style="stop-color:#EA580C"/>
-    </radialGradient>
-    <radialGradient id="green" cx="35%" cy="30%" r="75%">
-      <stop offset="0%" style="stop-color:#86EFAC"/>
-      <stop offset="100%" style="stop-color:#16A34A"/>
-    </radialGradient>
-    <radialGradient id="purple" cx="35%" cy="30%" r="75%">
-      <stop offset="0%" style="stop-color:#C4B5FD"/>
-      <stop offset="100%" style="stop-color:#7C3AED"/>
+    <linearGradient id="lit" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7d6fc9"/>
+      <stop offset="60%" stop-color="#9184d9"/>
+      <stop offset="100%" stop-color="#bcb2ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9184d9" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="#9184d9" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <circle cx="164" cy="304" r="92" fill="url(#orange)"/>
-  <circle cx="348" cy="304" r="92" fill="url(#green)"/>
-  <circle cx="256" cy="176" r="92" fill="url(#purple)"/>
+
+  <rect width="512" height="512" rx="112" fill="url(#ground)"/>
+  <circle cx="360" cy="150" r="200" fill="url(#glow)"/>
+
+  <!-- Rotated so the ladder climbs at 32°, filling the square corner to corner. -->
+  <g transform="rotate(-32 256 256)">
+    <!-- Rails: firm enough to frame the ladder at small sizes. -->
+    <g fill="#e9e9ed" opacity=".26">
+      <rect x="78" y="146" width="356" height="26" rx="13"/>
+      <rect x="78" y="340" width="356" height="26" rx="13"/>
+    </g>
+    <!-- Rungs: three lit and climbing, the last still dark. -->
+    <rect x="114" y="146" width="46" height="220" rx="23" fill="url(#lit)"/>
+    <rect x="199" y="146" width="46" height="220" rx="23" fill="url(#lit)"/>
+    <rect x="284" y="146" width="46" height="220" rx="23" fill="url(#lit)" opacity=".55"/>
+    <rect x="369" y="146" width="46" height="220" rx="23" fill="#e9e9ed" opacity=".18"/>
+  </g>
 </svg>

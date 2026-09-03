@@ -14,7 +14,7 @@ export default function Welcome() {
   return (
     <div className="route-forward h-full overflow-y-auto flex flex-col px-6.5 pt-8.5 pb-action">
       <div className="flex flex-col gap-2.5">
-        <div className="text-[11px] tracking-[0.22em] text-accent font-semibold">HUNDRED</div>
+        <div className="text-[11px] tracking-[0.22em] text-accent font-semibold">RUNGS</div>
         <div className="text-[38px] leading-[1.04] font-medium tracking-[-0.03em]" style={{ textWrap: 'pretty' }}>
           Start at a hundred.<br />Finish at three.
         </div>

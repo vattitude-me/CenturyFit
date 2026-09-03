@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.vatsakrish.hundred',
-  appName: 'Hundred',
+  appId: 'com.vatsakrish.rungs',
+  appName: 'Rungs',
   webDir: 'dist',
   backgroundColor: '#161826',
   android: {

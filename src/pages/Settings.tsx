@@ -168,14 +168,14 @@ export default function Settings() {
           />
           <ListRow icon={<Sparkles size={14} />} title="Motivational nudges" subtitle="Playful, max two a day" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
           <ListRow icon={<Lock size={14} />} title="Data & privacy" subtitle="On-device, export any time" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
-          <ListRow icon={<Info size={14} />} title="About Hundred" subtitle={`v${__APP_VERSION__} · free forever`} trailing={<span className="text-[13px] text-neutral-600">›</span>} />
+          <ListRow icon={<Info size={14} />} title="About Rungs" subtitle={`v${__APP_VERSION__} · free forever`} trailing={<span className="text-[13px] text-neutral-600">›</span>} />
         </div>
       </div>
 
       <Button variant="ghost" block className="h-10 text-neutral-500" onClick={handleReset}>Reset all data</Button>
 
       <div className="text-[11.5px] leading-[1.5] text-neutral-600 text-center pt-1">
-        Hundred is free forever. No ads, no paywall,<br />no locked exercises.
+        Rungs is free forever. No ads, no paywall,<br />no locked exercises.
       </div>
     </div>
   );

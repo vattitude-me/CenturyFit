@@ -1,11 +1,14 @@
-# Hundred
+# Rungs
 
-3 to 100. Push-ups, pull-ups, squats — every day.
+A hundred a day, one rung at a time.
 
-An offline-first coaching PWA that ramps you from a handful of reps to 100
-a day, spread across windows through your day. React 19 + Vite + TypeScript +
-Tailwind v4 + Dexie (IndexedDB), installable as a PWA on desktop/mobile web
-and packaged as a native Android app via Capacitor.
+An offline-first coaching PWA for push-ups, pull-ups and squats. You start at a
+daily total of 100 reps — split across the three by relative strength — and
+climb: 100 → 200 → 300, where 300 is 100 of each. Reps are cut into short
+windows spread through your day rather than one long session.
+
+React 19 + Vite + TypeScript + Tailwind v4 + Dexie (IndexedDB), installable as
+a PWA on desktop/mobile web and packaged as a native Android app via Capacitor.
 
 ## Development
 

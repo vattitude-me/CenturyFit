@@ -8,14 +8,14 @@ if (hasKeystoreProperties) {
 }
 
 android {
-    namespace = "com.vatsakrish.hundred"
+    namespace = "com.vatsakrish.rungs"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.vatsakrish.hundred"
+        applicationId "com.vatsakrish.rungs"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.1.0"
+        versionCode 7
+        versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

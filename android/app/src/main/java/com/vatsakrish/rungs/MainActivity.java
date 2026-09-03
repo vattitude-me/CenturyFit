@@ -1,4 +1,4 @@
-package com.vatsakrish.hundred;
+package com.vatsakrish.rungs;
 
 import com.getcapacitor.BridgeActivity;
 

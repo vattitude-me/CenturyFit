@@ -13,6 +13,10 @@ class HundredDB extends Dexie {
   streaks!: Table<StreakData, string>;
 
   constructor() {
+    // DO NOT RENAME. This is the IndexedDB database name, not a brand name —
+    // it predates the rename to "Rungs" and is invisible to users. Changing it
+    // orphans every existing install's data (profile, baselines, set logs,
+    // streaks) with no migration path.
     super('hundred');
     this.version(1).stores({
       profile: 'id',

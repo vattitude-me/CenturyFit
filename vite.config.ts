@@ -15,9 +15,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'CenturyFit',
-        short_name: 'CenturyFit',
-        description: '3 to 100. Push-ups, pull-ups, squats — every day.',
+        name: 'Rungs',
+        short_name: 'Rungs',
+        description: 'A hundred a day, one rung at a time. Push-ups, pull-ups, squats.',
         theme_color: '#161826',
         background_color: '#161826',
         display: 'standalone',
