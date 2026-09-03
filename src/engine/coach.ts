@@ -163,6 +163,25 @@ export function splitIntoWindows(
   const remaining: Record<Exercise, number> = { ...dailyTargets };
   const exerciseOrder = EXERCISES.filter((e) => dailyTargets[e] > 0);
 
+  // Precompute, per exercise, which window indices (1-based) it lands in —
+  // the picks loop below is deterministic from i alone, so this mirrors it
+  // rather than re-deriving picks twice.
+  const appearances: Record<Exercise, number[]> = { push: [], pull: [], squat: [] };
+  for (let i = 1; i <= windowCount; i++) {
+    const startIdx = ((i - 1) * 2) % Math.max(1, exerciseOrder.length);
+    const picks: Exercise[] = [];
+    for (let k = 0; k < exerciseOrder.length && picks.length < 2; k++) {
+      const ex = exerciseOrder[(startIdx + k) % exerciseOrder.length];
+      if (!picks.includes(ex)) picks.push(ex);
+    }
+    for (const ex of picks) appearances[ex].push(i);
+  }
+  const lastAppearance: Partial<Record<Exercise, number>> = {};
+  for (const ex of exerciseOrder) {
+    const list = appearances[ex];
+    if (list.length > 0) lastAppearance[ex] = list[list.length - 1];
+  }
+
   for (let i = 1; i <= windowCount; i++) {
     const windowsLeft = windowCount - i + 1;
     const at = minutesToTime(Math.round(usableStart + gap * i));
@@ -177,7 +196,12 @@ export function splitIntoWindows(
     }
 
     for (const ex of picks) {
-      const reps = Math.max(0, Math.ceil(remaining[ex] / windowsLeft));
+      // On this exercise's last scheduled window, take everything left —
+      // windowsLeft counts windows in general, not windows that still
+      // include this exercise, so relying on it here would strand reps.
+      const reps = lastAppearance[ex] === i
+        ? remaining[ex]
+        : Math.max(0, Math.ceil(remaining[ex] / windowsLeft));
       if (reps > 0) {
         items.push({ exercise: ex, reps });
         remaining[ex] -= reps;
