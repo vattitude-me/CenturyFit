@@ -142,7 +142,7 @@ export default function Settings() {
           />
           <ListRow icon={<Sparkles size={14} />} title="Motivational nudges" subtitle="Playful, max two a day" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
           <ListRow icon={<Lock size={14} />} title="Data & privacy" subtitle="On-device, export any time" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
-          <ListRow icon={<Info size={14} />} title="About Hundred" subtitle="v1.0 · free forever" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
+          <ListRow icon={<Info size={14} />} title="About Hundred" subtitle={`v${__APP_VERSION__} · free forever`} trailing={<span className="text-[13px] text-neutral-600">›</span>} />
         </div>
       </div>
 
