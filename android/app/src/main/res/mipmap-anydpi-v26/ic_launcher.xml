@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background>
-        <inset android:drawable="@mipmap/ic_launcher_background" android:inset="16.7%" />
-    </background>
+    <!-- Background fills the full 108dp adaptive-icon canvas edge-to-edge -
+         only the foreground is inset, which is the standard pattern. Insetting
+         the background too (as this used to) left the launcher's own fallback
+         color showing in the outer 16.7% ring since the background PNG itself
+         has no transparent margin. -->
+    <background android:drawable="@mipmap/ic_launcher_background" />
     <foreground>
         <inset android:drawable="@mipmap/ic_launcher_foreground" android:inset="16.7%" />
     </foreground>

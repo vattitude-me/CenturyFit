@@ -1,41 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!--
-    Rungs - a ladder climbing to the right, drawn as two rails plus four
-    rungs. The bottom three are lit in the accent, the top one is dim: the
-    rung still to climb. Mirrors the in-app pull-up path (Rows > Negatives >
-    Band > Partials > Full) and the 100 > 200 > 300 tier ladder.
-    Nocturne palette: #161826 ground, #9184d9 accent.
+    Rungs favicon - a simplified vector echo of the new app icon (an
+    athlete pressing a barbell overhead, ringed badge, warm orange). Kept as
+    flat shapes rather than the full illustration so it stays crisp at
+    16-32px browser-tab sizes, where the illustrated icon's fine linework
+    would otherwise turn to noise.
   -->
   <defs>
-    <linearGradient id="ground" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1f2236"/>
-      <stop offset="65%" stop-color="#161826"/>
+    <linearGradient id="fav-bg" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#f6a13c"/>
+      <stop offset="55%" stop-color="#ee7a1f"/>
+      <stop offset="100%" stop-color="#d85a13"/>
     </linearGradient>
-    <linearGradient id="lit" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7d6fc9"/>
-      <stop offset="60%" stop-color="#9184d9"/>
-      <stop offset="100%" stop-color="#bcb2ff"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#9184d9" stop-opacity=".34"/>
-      <stop offset="100%" stop-color="#9184d9" stop-opacity="0"/>
-    </radialGradient>
   </defs>
 
-  <rect width="512" height="512" rx="112" fill="url(#ground)"/>
-  <circle cx="360" cy="150" r="200" fill="url(#glow)"/>
+  <rect width="512" height="512" rx="112" fill="url(#fav-bg)"/>
 
-  <!-- Rotated so the ladder climbs at 32°, filling the square corner to corner. -->
-  <g transform="rotate(-32 256 256)">
-    <!-- Rails: firm enough to frame the ladder at small sizes. -->
-    <g fill="#e9e9ed" opacity=".26">
-      <rect x="78" y="146" width="356" height="26" rx="13"/>
-      <rect x="78" y="340" width="356" height="26" rx="13"/>
-    </g>
-    <!-- Rungs: three lit and climbing, the last still dark. -->
-    <rect x="114" y="146" width="46" height="220" rx="23" fill="url(#lit)"/>
-    <rect x="199" y="146" width="46" height="220" rx="23" fill="url(#lit)"/>
-    <rect x="284" y="146" width="46" height="220" rx="23" fill="url(#lit)" opacity=".55"/>
-    <rect x="369" y="146" width="46" height="220" rx="23" fill="#e9e9ed" opacity=".18"/>
+  <!-- Ring badge -->
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#231609" stroke-width="16"/>
+
+  <!-- Barbell -->
+  <g fill="#231609">
+    <rect x="120" y="168" width="272" height="22" rx="8"/>
+    <rect x="96" y="140" width="30" height="78" rx="6"/>
+    <rect x="70" y="152" width="18" height="54" rx="4"/>
+    <rect x="386" y="140" width="30" height="78" rx="6"/>
+    <rect x="424" y="152" width="18" height="54" rx="4"/>
+  </g>
+
+  <!-- Figure: head, raised arms, and torso, reduced to bold flat shapes. -->
+  <g fill="#231609">
+    <circle cx="256" cy="248" r="34"/>
+    <path d="M180 190 q-18 46 6 90 l38-16 q-20-38-8-70 z"/>
+    <path d="M332 190 q18 46-6 90 l-38-16 q20-38 8-70 z"/>
+    <path d="M198 292 q58-30 116 0 l30 116 q-88 30-176 0 z"/>
   </g>
 </svg>
