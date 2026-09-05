@@ -159,11 +159,29 @@ export function vibrate(pattern: number | number[] = 50): void {
 }
 
 let wakeLock: WakeLockSentinel | null = null;
+let wakeLockWanted = false;
 
 export async function requestWakeLock(): Promise<void> {
+  wakeLockWanted = true;
+  if (!('wakeLock' in navigator)) return;
+  if (wakeLock) return;
+  // The request is rejected outright while the page is hidden; the
+  // visibilitychange handler below picks it up again on return.
+  if (document.visibilityState !== 'visible') return;
   try {
-    if ('wakeLock' in navigator) {
-      wakeLock = await navigator.wakeLock.request('screen');
+    const sentinel = await navigator.wakeLock.request('screen');
+    // Android drops the lock on its own whenever the page is backgrounded or
+    // the WebView loses focus. Without clearing our reference here, the
+    // `if (wakeLock) return` guard above would treat the dead sentinel as
+    // live and never re-acquire, so the screen starts timing out mid-session.
+    sentinel.addEventListener('release', () => {
+      if (wakeLock === sentinel) wakeLock = null;
+    });
+    if (wakeLockWanted) {
+      wakeLock = sentinel;
+    } else {
+      // Released while the request was still in flight.
+      await sentinel.release();
     }
   } catch {
     // Wake lock request failed (e.g., tab not visible)
@@ -171,8 +189,22 @@ export async function requestWakeLock(): Promise<void> {
 }
 
 export async function releaseWakeLock(): Promise<void> {
-  if (wakeLock) {
-    await wakeLock.release();
-    wakeLock = null;
+  wakeLockWanted = false;
+  const sentinel = wakeLock;
+  wakeLock = null;
+  if (sentinel) {
+    try {
+      await sentinel.release();
+    } catch {
+      // Already released by the platform.
+    }
   }
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && wakeLockWanted && !wakeLock) {
+      requestWakeLock();
+    }
+  });
 }

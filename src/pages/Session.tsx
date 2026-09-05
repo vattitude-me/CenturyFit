@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Mic, PlayCircle, X } from 'lucide-react';
 import Button from '../components/Button';
@@ -66,6 +66,7 @@ export default function Session() {
   const [done, setDone] = useState<SessionState | null>(null);
   const [resting, setResting] = useState(false);
   const [restLeft, setRestLeft] = useState(REST_SECONDS);
+  const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
   const [ready, setReady] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -91,16 +92,34 @@ export default function Session() {
     setReady(3);
   };
 
+  // `startNextItem` is declared further down (it needs `engine`, which needs
+  // `handleBank`), so the rest countdown below reaches the current version
+  // through this ref instead of capturing a stale closure.
+  const startNextItemRef = useRef<() => void>(() => {});
+
+  // The rest countdown runs off a wall-clock deadline rather than by
+  // decrementing once per setTimeout. Android throttles (and, once the screen
+  // locks, suspends) timers in a backgrounded WebView, so a tick-based counter
+  // silently stretches a 45s rest into minutes while the phone is asleep.
   useEffect(() => {
-    if (!resting) return;
-    if (restLeft <= 0) {
-      setResting(false);
-      setRestLeft(REST_SECONDS);
-      return;
-    }
-    const t = setTimeout(() => setRestLeft((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resting, restLeft]);
+    if (!resting || restEndsAt === null) return;
+    const sync = () => {
+      const left = Math.ceil((restEndsAt - Date.now()) / 1000);
+      if (left <= 0) {
+        startNextItemRef.current();
+        return true;
+      }
+      setRestLeft(left);
+      return false;
+    };
+    if (sync()) return;
+    const t = setInterval(() => { if (sync()) clearInterval(t); }, 250);
+    // Re-sync the moment the screen comes back, so a rest that expired while
+    // the phone was asleep advances immediately instead of on the next tick.
+    const onVisible = () => { if (document.visibilityState === 'visible') sync(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVisible); };
+  }, [resting, restEndsAt]);
 
   useEffect(() => {
     if (ready === null) return;
@@ -149,6 +168,7 @@ export default function Session() {
     if (hasNextItem) {
       setResting(true);
       setRestLeft(REST_SECONDS);
+      setRestEndsAt(Date.now() + REST_SECONDS * 1000);
       return;
     }
     setDone({ count: reps, target: Number.isFinite(target) ? target : reps });
@@ -170,9 +190,11 @@ export default function Session() {
   const startNextItem = () => {
     setResting(false);
     setRestLeft(REST_SECONDS);
+    setRestEndsAt(null);
     setItemIndex((i) => i + 1);
     engine.reset(TEMPO_RANGE[queue[itemIndex + 1].exercise].default);
   };
+  startNextItemRef.current = startNextItem;
 
   const cue = engine.state.running
     ? (engine.state.phase === 'down' ? 'DOWN' : 'UP')
