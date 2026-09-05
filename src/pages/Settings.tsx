@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Mic, Timer, Vibrate, Bell, Sparkles, Lock, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Mic, Timer, Vibrate, Bell, Lock, Info, ChevronDown,
+  UserPlus, Users, Sparkles, Cloud, Camera, Watch, Trophy,
+} from 'lucide-react';
 import Button from '../components/Button';
 import Toggle from '../components/Toggle';
 import ListRow from '../components/ListRow';
-import { getProfile, saveProfile, getSettings, saveSettings, resetAllData } from '../db';
+import { getProfile, saveProfile, getSettings, saveSettings } from '../db';
 import {
   isNative, requestNotificationPermission, hasNotificationPermission,
   scheduleWindowReminders, cancelWindowReminders,
@@ -14,11 +18,23 @@ import type { Profile, AppSettings } from '../types';
 
 type NotifState = 'granted' | 'denied' | 'unsupported';
 
+const UPCOMING_FEATURES = [
+  { icon: Cloud, title: 'Accounts & sync', subtitle: 'Sign in, merge history across devices' },
+  { icon: UserPlus, title: 'Friends', subtitle: 'Add friends, see their streaks' },
+  { icon: Users, title: 'Squad', subtitle: 'Group feed, leaderboards' },
+  { icon: Sparkles, title: 'Motivational nudges', subtitle: 'Playful, max two a day' },
+  { icon: Camera, title: 'Camera auto-count', subtitle: 'Pose detection counts reps for you' },
+  { icon: Watch, title: 'Watch app', subtitle: 'Log sets from your wrist' },
+  { icon: Trophy, title: 'Challenges', subtitle: 'Timed group challenges' },
+] as const;
+
 export default function Settings() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotifState>(
     isNative() || 'Notification' in window ? 'denied' : 'unsupported'
   );
@@ -72,11 +88,6 @@ export default function Settings() {
     else await cancelWindowReminders(plan);
   };
 
-  const handleReset = async () => {
-    await resetAllData();
-    window.location.reload();
-  };
-
   return (
     <div className="flex-1 h-full overflow-y-auto flex flex-col px-5 pt-4 pb-24 gap-3.75">
       <div className="flex items-center gap-3.25">
@@ -109,7 +120,7 @@ export default function Settings() {
               />
               <Button variant="primary" className="h-9.5 px-3.5 flex-none" onClick={saveName}>Save</Button>
             </span>
-            <span className="text-[11px] text-neutral-600">Stays on this phone. Used in greetings and, later, in Squad.</span>
+            <span className="text-[11px] text-neutral-600">Stays on this phone. Used in greetings only.</span>
           </span>
         )}
       </div>
@@ -122,6 +133,30 @@ export default function Settings() {
         <div className="text-xs leading-[1.5] text-accent-200">
           Everything lives on your device today, no sign-up, no upload. When sync lands, your history merges into the account. Nothing to re-enter.
         </div>
+      </div>
+
+      <div className="flex-none rounded-[14px] bg-surface shadow-sm overflow-hidden">
+        <button
+          onClick={() => setUpcomingOpen((v) => !v)}
+          className="w-full flex items-center gap-2.5 px-3.5 py-3 cursor-pointer text-left"
+        >
+          <span className="flex-1 flex flex-col gap-px">
+            <span className="text-[13.5px] font-medium">Upcoming features</span>
+            <span className="text-[11px] text-neutral-600">What's planned, not built yet</span>
+          </span>
+          <ChevronDown
+            size={15}
+            className="text-neutral-500 transition-transform duration-200"
+            style={{ transform: upcomingOpen ? 'rotate(180deg)' : 'none' }}
+          />
+        </button>
+        {upcomingOpen && (
+          <div className="border-t border-neutral-800/60">
+            {UPCOMING_FEATURES.map((f) => (
+              <ListRow key={f.title} icon={<f.icon size={14} />} title={f.title} subtitle={f.subtitle} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.75">
@@ -166,13 +201,10 @@ export default function Settings() {
               />
             }
           />
-          <ListRow icon={<Sparkles size={14} />} title="Motivational nudges" subtitle="Playful, max two a day" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
-          <ListRow icon={<Lock size={14} />} title="Data & privacy" subtitle="On-device, export any time" trailing={<span className="text-[13px] text-neutral-600">›</span>} />
+          <ListRow icon={<Lock size={14} />} title="Data & privacy" subtitle="On-device only, nothing shared" trailing={<span className="text-[13px] text-neutral-600">›</span>} onClick={() => navigate('/settings/privacy')} />
           <ListRow icon={<Info size={14} />} title="About Rungs" subtitle={`v${__APP_VERSION__} · free forever`} trailing={<span className="text-[13px] text-neutral-600">›</span>} />
         </div>
       </div>
-
-      <Button variant="ghost" block className="h-10 text-neutral-500" onClick={handleReset}>Reset all data</Button>
 
       <div className="text-[11.5px] leading-[1.5] text-neutral-600 text-center pt-1">
         Rungs is free forever. No ads, no paywall,<br />no locked exercises.

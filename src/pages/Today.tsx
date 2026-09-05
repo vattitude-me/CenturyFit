@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { CircleUser } from 'lucide-react';
 import ProgressRing from '../components/ProgressRing';
 import FillBar from '../components/FillBar';
 import LitCard from '../components/LitCard';
@@ -120,10 +120,11 @@ export default function Today() {
           </div>
         </div>
         <button
-          onClick={() => navigate('/session/log')}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-900 text-accent-200 text-xs font-medium flex-none cursor-pointer"
+          onClick={() => navigate('/settings')}
+          aria-label="Settings"
+          className="w-9.5 h-9.5 flex-none rounded-full bg-surface grid place-items-center text-neutral-300 cursor-pointer"
         >
-          <Plus size={13} strokeWidth={2.5} /><span>Log reps</span>
+          <CircleUser size={19} strokeWidth={1.8} />
         </button>
       </div>
 

@@ -21,6 +21,7 @@ import Today from './pages/Today';
 import Progress from './pages/Progress';
 import Squad from './pages/Squad';
 import Settings from './pages/Settings';
+import DataPrivacy from './pages/DataPrivacy';
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined);
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="/onboarding/plan" element={<PlanPreview />} />
         <Route path="/session" element={<Session />} />
         <Route path="/session/log" element={<LogReps />} />
+        <Route path="/settings/privacy" element={<DataPrivacy />} />
         <Route element={<Layout />}>
           <Route path="/today" element={<Today />} />
           <Route path="/progress" element={<Progress />} />

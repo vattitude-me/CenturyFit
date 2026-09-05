@@ -168,5 +168,11 @@ export async function saveStreak(streak: StreakData): Promise<void> {
 }
 
 export async function resetAllData(): Promise<void> {
+  // db.delete() issues indexedDB.deleteDatabase(), which blocks until every
+  // open connection closes. The singleton `db` above is still open on this
+  // page, so without closing it first the delete request never resolves
+  // (or resolves after a reload has already raced ahead and reopened it),
+  // leaving stale data in place while the UI thinks it succeeded.
+  db.close();
   await db.delete();
 }
