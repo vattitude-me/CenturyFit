@@ -19,7 +19,7 @@ export default function Welcome() {
           Start at a hundred.<br />Finish at three.
         </div>
         <div className="text-sm leading-[1.55] text-neutral-400 max-w-[300px]">
-          100 reps a day to begin — push-ups, pull-ups and squats mixed to your
+          100 reps a day to begin: push-ups, pull-ups and squats mixed to your
           strength. Earn your way to 200, then 300: a hundred of each.
         </div>
       </div>

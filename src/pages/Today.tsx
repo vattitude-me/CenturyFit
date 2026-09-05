@@ -81,7 +81,7 @@ export default function Today() {
   });
 
   const totalDone = rings.reduce((a, r) => a + r.done, 0);
-  // The goal is the tier the plan was built for — the sum of its targets.
+  // The goal is the tier the plan was built for - the sum of its targets.
   const dailyGoal: number = plan.tier ?? rings.reduce((a, r) => a + r.target, 0);
   const totalLeft = Math.max(0, dailyGoal - totalDone);
   const goalHit = totalDone >= dailyGoal;
@@ -100,7 +100,7 @@ export default function Today() {
     const reps = w.items.reduce((a, it) => a + it.reps, 0);
     return {
       id: w.id + i, time: w.at, state, window: w,
-      // Name the window by its whole contents, not just the first exercise —
+      // Name the window by its whole contents, not just the first exercise -
       // a "Squats" row that actually contains push-ups too reads as a bug.
       name: w.items.length > 1
         ? `${reps} reps`

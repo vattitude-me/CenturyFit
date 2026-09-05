@@ -108,7 +108,7 @@ export async function scheduleWindowReminders(plan: DayPlan): Promise<void> {
   }
 }
 
-/** Cancels every reminder for a day — used when the user turns reminders off. */
+/** Cancels every reminder for a day - used when the user turns reminders off. */
 export async function cancelWindowReminders(plan: DayPlan): Promise<void> {
   if (!isNative()) return;
   try {

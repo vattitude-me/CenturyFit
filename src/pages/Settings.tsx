@@ -152,8 +152,8 @@ export default function Settings() {
                 ? 'Not supported in this browser'
                 : notifPermission === 'denied'
                   ? isNative()
-                    ? 'Blocked — enable in Android settings'
-                    : 'Blocked — enable in browser settings'
+                    ? 'Blocked, enable in Android settings'
+                    : 'Blocked, enable in browser settings'
                   : isNative()
                     ? '5 minutes before each window'
                     : '5 minutes before each window, while the app is open'

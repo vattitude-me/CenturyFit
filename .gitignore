@@ -32,7 +32,7 @@ android/captures
 android/*.iml
 android/.idea
 
-# Signing secrets — never commit. Back the keystore up somewhere safe;
+# Signing secrets, never commit. Back the keystore up somewhere safe;
 # losing it means future releases can't update installs of this app.
 android/keystore/
 android/keystore.properties

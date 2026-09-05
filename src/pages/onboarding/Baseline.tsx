@@ -38,7 +38,7 @@ export default function Baseline() {
 
   const allTested = TESTS.every((t) => tested[t.key] !== null);
 
-  /** A blank field is not zero — it's unanswered. Zero is a legitimate answer
+  /** A blank field is not zero - it's unanswered. Zero is a legitimate answer
    * (especially for pull-ups), so the two have to stay distinguishable. */
   const parseDraft = (raw: string): number | null => {
     const trimmed = raw.trim();
@@ -51,7 +51,7 @@ export default function Baseline() {
     const raw = drafts[t.key].trim();
     if (raw === '') acc[t.key] = 'Enter a number (0 is fine).';
     else if (!/^\d+$/.test(raw)) acc[t.key] = 'Whole numbers only.';
-    else if (Number(raw) > MAX_REPS) acc[t.key] = `That's above ${MAX_REPS} — double-check it.`;
+    else if (Number(raw) > MAX_REPS) acc[t.key] = `That's above ${MAX_REPS}, double-check it.`;
     return acc;
   }, {});
 
@@ -154,7 +154,7 @@ export default function Baseline() {
               </span>
             </div>
             <div className="text-[12.5px] leading-[1.5] text-neutral-400">
-              Your best single set for each, as of today. Be honest — the whole plan scales off these.
+              Your best single set for each, as of today. Be honest, the whole plan scales off these.
             </div>
 
             {TESTS.map((t) => {

@@ -73,7 +73,7 @@ function pickVoice(): void {
     voices[0];
 }
 
-/** Warms up the TTS engine. Must be called from a user gesture on Android —
+/** Warms up the TTS engine. Must be called from a user gesture on Android -
  * the first utterance after a tap is what unblocks the engine. */
 export function primeSpeech(): void {
   if (!('speechSynthesis' in window)) return;
@@ -97,7 +97,7 @@ let speakingTimer: ReturnType<typeof setTimeout> | null = null;
 function markSpeaking(estimatedMs: number): void {
   speaking = true;
   if (speakingTimer) clearTimeout(speakingTimer);
-  // Fallback release — Android's onend is unreliable, and a stuck flag would
+  // Fallback release - Android's onend is unreliable, and a stuck flag would
   // silence every subsequent count for the rest of the set.
   speakingTimer = setTimeout(() => { speaking = false; }, estimatedMs);
 }
@@ -140,7 +140,7 @@ export function speakMilestone(kind: keyof typeof MILESTONE_PHRASES): void {
   speak(MILESTONE_PHRASES[kind], 1200);
 }
 
-/** Stops any queued speech — used when leaving a session. */
+/** Stops any queued speech - used when leaving a session. */
 export function stopSpeech(): void {
   if (!('speechSynthesis' in window)) return;
   try {

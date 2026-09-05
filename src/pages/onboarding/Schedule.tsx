@@ -21,7 +21,7 @@ const WINDOW_COUNT = 4;
 const SECONDS_PER_REP = 4;
 
 /** Builds the proposed day from the real tier-100 split, so what's previewed
- * here is what actually gets scheduled — not illustrative placeholder text. */
+ * here is what actually gets scheduled - not illustrative placeholder text. */
 function buildProposal(maxes: Record<Exercise, number>): ProposedWindow[] {
   const targets = computeTierTargets(maxes, 100);
   return splitIntoWindows(targets, WINDOW_COUNT, WAKE, SLEEP).map((w) => {

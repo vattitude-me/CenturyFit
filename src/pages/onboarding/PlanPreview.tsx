@@ -19,7 +19,7 @@ interface OnboardingState {
   rowEquipment?: RowEquipment;
 }
 
-/** Stand-in maxes for someone who skipped the baseline test — a person who
+/** Stand-in maxes for someone who skipped the baseline test - a person who
  * says "I already train" but gave us no numbers. Deliberately modest so the
  * first day is achievable rather than discouraging. */
 const TRAINED_DEFAULT_MAXES: Record<Exercise, number> = { push: 12, pull: 3, squat: 25 };
@@ -126,7 +126,7 @@ export default function PlanPreview() {
       </div>
 
       {/* The three tiers, with the current one lit. This is the whole arc of the
-          app in one row — where you start, and what "done" actually looks like. */}
+          app in one row - where you start, and what "done" actually looks like. */}
       <div
         className="p-4 rounded-[14px] shadow-sm flex flex-col gap-3"
         style={{ background: 'linear-gradient(150deg, #1d2033, #161826)' }}
@@ -151,7 +151,7 @@ export default function PlanPreview() {
                   {t}
                 </span>
                 <span className="text-[10px] leading-[1.3] text-neutral-500">
-                  {t === 100 ? 'reps a day, mixed' : t === 200 ? 'once 100 is routine' : '100 of each — done'}
+                  {t === 100 ? 'reps a day, mixed' : t === 200 ? 'once 100 is routine' : '100 of each, done'}
                 </span>
               </div>
             );

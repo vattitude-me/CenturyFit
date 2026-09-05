@@ -75,7 +75,7 @@ const MISS_GRACE_MINUTES = 20;
 
 /** Reflows any pending window whose time has passed (with a grace period)
  * into the remaining pending windows for the day, and persists the result.
- * Only meaningful for today's plan — a past day's unfinished windows should
+ * Only meaningful for today's plan - a past day's unfinished windows should
  * stay as history, not get redistributed into a plan nobody will act on. */
 export async function reflowMissedWindows(plan: DayPlan, todayIso: string): Promise<DayPlan> {
   if (plan.date !== todayIso) return plan;

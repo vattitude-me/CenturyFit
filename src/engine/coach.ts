@@ -7,14 +7,14 @@ const EXERCISES: Exercise[] = ['push', 'pull', 'squat'];
 // Tier model
 //
 // The goal is a daily TOTAL: 100 reps a day mixed across the three exercises,
-// then 200, then 300 — at which point it's 100 of each and you're done. Each
+// then 200, then 300 - at which point it's 100 of each and you're done. Each
 // exercise's share of the tier is weighted by your relative strength at it, so
 // someone who can't do a pull-up gets few pull-ups and more squats, and the
 // mix evens out toward 100/100/100 as the tiers climb.
 // ---------------------------------------------------------------------------
 
 /** Every exercise carries at least this share of the daily total, so no
- * exercise ever drops out of the plan entirely — even a zero pull-up max. */
+ * exercise ever drops out of the plan entirely - even a zero pull-up max. */
 const MIN_SHARE = 0.08;
 
 /** Per-exercise share weights, from each max relative to the total. Blended
@@ -43,7 +43,7 @@ export function computeShares(
   return raw;
 }
 
-/** No single exercise ever exceeds 100 a day — that's the end goal, not a
+/** No single exercise ever exceeds 100 a day - that's the end goal, not a
  * waypoint. Overflow from a lopsided split goes to the other two. */
 const PER_EXERCISE_CAP = 100;
 
@@ -163,7 +163,7 @@ export function splitIntoWindows(
   const remaining: Record<Exercise, number> = { ...dailyTargets };
   const exerciseOrder = EXERCISES.filter((e) => dailyTargets[e] > 0);
 
-  // Precompute, per exercise, which window indices (1-based) it lands in —
+  // Precompute, per exercise, which window indices (1-based) it lands in -
   // the picks loop below is deterministic from i alone, so this mirrors it
   // rather than re-deriving picks twice.
   const appearances: Record<Exercise, number[]> = { push: [], pull: [], squat: [] };
@@ -196,7 +196,7 @@ export function splitIntoWindows(
     }
 
     for (const ex of picks) {
-      // On this exercise's last scheduled window, take everything left —
+      // On this exercise's last scheduled window, take everything left -
       // windowsLeft counts windows in general, not windows that still
       // include this exercise, so relying on it here would strand reps.
       const reps = lastAppearance[ex] === i
@@ -350,11 +350,11 @@ export function updateStreak(streak: StreakData, today: string, creditedToday: b
 
   if (streak.lastActiveDate === today) return streak;
 
-  // updateStreak only ever runs on days the user actually logs reps — there's
+  // updateStreak only ever runs on days the user actually logs reps - there's
   // no background job to mark a fully-skipped day as missed. So a gap here
   // (days since last active) is the only place multi-day absences are ever
   // seen, and a gap of exactly 2 is what "one missed day" looks like. Larger
-  // gaps must reset regardless of grace — otherwise a week-long absence would
+  // gaps must reset regardless of grace - otherwise a week-long absence would
   // be forgiven for free just because no grace day had been spent yet.
   const gap = streak.lastActiveDate ? daysBetween(streak.lastActiveDate, today) : Infinity;
   const windowStart = streak.windowStartDate || streak.lastActiveDate;

@@ -3,7 +3,7 @@
 A hundred a day, one rung at a time.
 
 An offline-first coaching PWA for push-ups, pull-ups and squats. You start at a
-daily total of 100 reps — split across the three by relative strength — and
+daily total of 100 reps (split across the three by relative strength) and
 climb: 100 → 200 → 300, where 300 is 100 of each. Reps are cut into short
 windows spread through your day rather than one long session.
 
@@ -22,9 +22,9 @@ npm run lint
 ## Android (Capacitor)
 
 The `android/` directory is a native Capacitor project that wraps the built
-web app (`dist/`) in a WebView shell — same HashRouter-based SPA, same Dexie
+web app (`dist/`) in a WebView shell: same HashRouter-based SPA, same Dexie
 IndexedDB storage, no server required. It's checked into the repo (standard
-Capacitor practice — it can carry native customizations), but build output,
+Capacitor practice, it can carry native customizations), but build output,
 local SDK paths, and signing secrets are gitignored.
 
 ### One-time setup
@@ -40,7 +40,7 @@ echo "sdk.dir=$(brew --prefix)/share/android-commandlinetools" > android/local.p
 ```
 
 Release builds are signed. Generate a keystore once and keep it **outside
-git** and backed up somewhere durable — losing it means you can never ship
+git** and backed up somewhere durable: losing it means you can never ship
 an update to the same `applicationId` again, only a new listing:
 
 ```bash
@@ -67,5 +67,5 @@ Output:
 - Release: `android/app/build/outputs/apk/release/app-release.apk`
 
 After changing app icons or the web app itself, re-run
-`npm run build && npx cap sync android` before rebuilding the APK — Capacitor
+`npm run build && npx cap sync android` before rebuilding the APK: Capacitor
 copies `dist/` into the native project's assets, it doesn't read it live.

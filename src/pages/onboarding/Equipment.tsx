@@ -130,7 +130,7 @@ export default function Equipment() {
         </div>
 
         <div className="text-xs leading-[1.5] text-neutral-400">
-          You're on <strong className="text-text font-medium">{PULL_RUNG_LABELS[rung].toLowerCase()}</strong> —{' '}
+          You're on <strong className="text-text font-medium">{PULL_RUNG_LABELS[rung].toLowerCase()}</strong>:{' '}
           {PULL_RUNG_HINTS[rung]}. Clear 8 clean reps in a set and the coach moves you up a rung.
         </div>
 

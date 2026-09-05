@@ -50,7 +50,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
   const isDesktop = useIsDesktop();
 
   if (!isDesktop) {
-    // No simulated status bar on a real phone — the OS draws its own clock and
+    // No simulated status bar on a real phone - the OS draws its own clock and
     // battery there, and ours would sit on top of it. We just reserve the
     // safe-area height so content clears the notch/cutout.
     return (

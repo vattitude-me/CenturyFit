@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!--
-    Rungs — a ladder climbing to the right, drawn as two rails plus four
+    Rungs - a ladder climbing to the right, drawn as two rails plus four
     rungs. The bottom three are lit in the accent, the top one is dim: the
     rung still to climb. Mirrors the in-app pull-up path (Rows > Negatives >
     Band > Partials > Full) and the 100 > 200 > 300 tier ladder.

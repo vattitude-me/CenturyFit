@@ -3,7 +3,7 @@ import type {
   Profile, BaselineLog, DayPlan, SetLog, DayRecord, AppSettings, StreakData,
 } from '../types';
 
-class HundredDB extends Dexie {
+class RungsDB extends Dexie {
   profile!: Table<Profile, string>;
   baselineLogs!: Table<BaselineLog, string>;
   dayPlans!: Table<DayPlan, string>;
@@ -13,10 +13,10 @@ class HundredDB extends Dexie {
   streaks!: Table<StreakData, string>;
 
   constructor() {
-    // DO NOT RENAME. This is the IndexedDB database name, not a brand name —
-    // it predates the rename to "Rungs" and is invisible to users. Changing it
-    // orphans every existing install's data (profile, baselines, set logs,
-    // streaks) with no migration path.
+    // DO NOT RENAME. This is the IndexedDB database name, invisible to users
+    // and unrelated to the app's display name. Changing it orphans every
+    // existing install's data (profile, baselines, set logs, streaks) with no
+    // migration path.
     super('hundred');
     this.version(1).stores({
       profile: 'id',
@@ -30,7 +30,7 @@ class HundredDB extends Dexie {
 
     // v1 keyed settings/streaks by a value field (defaultTempo / current), so
     // every save whose value changed inserted a new row instead of
-    // overwriting — put() decides insert-vs-update by primary key. Reads did
+    // overwriting - put() decides insert-vs-update by primary key. Reads did
     // `.toCollection().first()` with no defined order, so the streak/settings
     // shown could jump between stale rows. v2 keys both by a fixed 'id' and
     // collapses any duplicate rows an affected install accumulated, keeping
@@ -60,7 +60,7 @@ class HundredDB extends Dexie {
   }
 }
 
-export const db = new HundredDB();
+export const db = new RungsDB();
 
 const SINGLETON_ID = 'singleton';
 

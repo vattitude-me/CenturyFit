@@ -36,7 +36,7 @@ export default function App() {
     StatusBar.setStyle({ style: Style.Dark });
     StatusBar.setBackgroundColor({ color: '#161826' });
     // Keep the WebView below the system status bar rather than drawing under
-    // it — the OS clock and battery own that strip, and overlaying would put
+    // it - the OS clock and battery own that strip, and overlaying would put
     // app content underneath them.
     StatusBar.setOverlaysWebView({ overlay: false });
   }, []);

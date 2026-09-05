@@ -83,7 +83,7 @@ export default function Session() {
   }, []);
 
   /** Starts the 3-2-1 countdown. Also the user gesture that unlocks Android's
-   * TTS engine — speech started later off a timer is silently dropped unless
+   * TTS engine - speech started later off a timer is silently dropped unless
    * the engine was primed from within a real tap. */
   const beginCountdown = () => {
     if (voiceOn && mode === 'voice') primeSpeech();
@@ -158,7 +158,7 @@ export default function Session() {
     mode,
     initialTempo: TEMPO_RANGE[exercise].default,
     voiceEnabled: voiceOn && mode === 'voice',
-    // Ticks are the cadence metronome — they only make sense in voice-led mode,
+    // Ticks are the cadence metronome - they only make sense in voice-led mode,
     // where the app is setting the pace. In manual mode the user sets their own
     // pace by tapping, so a timed tick would just be noise.
     ticksEnabled: ticksOn && mode === 'voice',

@@ -109,7 +109,7 @@ export interface AppSettings {
 }
 
 /** Per-exercise tempo bounds and default, in seconds/rep. Pull-ups need a
- * slower floor than push/squat — 1.0s/rep is too fast to control a pull-up. */
+ * slower floor than push/squat - 1.0s/rep is too fast to control a pull-up. */
 export const TEMPO_RANGE: Record<Exercise, { min: number; max: number; default: number }> = {
   push: { min: 1, max: 4, default: 2.5 },
   pull: { min: 2, max: 5, default: 3 },
@@ -144,7 +144,7 @@ export const PULL_RUNG_LABELS: Record<PullRung, string> = {
 
 /** What each rung actually asks of you, shown when picking a starting rung. */
 export const PULL_RUNG_HINTS: Record<PullRung, string> = {
-  0: "Can't hang yet — pull your bodyweight or a weight horizontally",
+  0: "Can't hang yet, pull your bodyweight or a weight horizontally",
   1: 'Jump to the top, lower yourself as slowly as you can',
   2: 'A band under your feet takes some of the weight',
   3: 'Half a rep from a dead hang, working toward the full range',
