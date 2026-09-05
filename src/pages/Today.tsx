@@ -200,7 +200,9 @@ export default function Today() {
       <div className="flex flex-col gap-2.25">
         <div className="flex items-baseline justify-between">
           <span className="text-[11px] tracking-[0.1em] text-neutral-500">TODAY'S WINDOWS</span>
-          <span className="text-[11.5px] text-accent">Reflow</span>
+          {profile.reflow && (
+            <span className="text-[11.5px] text-neutral-500">Reflows if missed</span>
+          )}
         </div>
         {windowRows.map((w) => (
           <TimelineRow key={w.id} time={w.time} state={w.state}>

@@ -33,8 +33,10 @@ export async function generateDayPlan(
   const totalVolume = EXERCISES.reduce((a, ex) => a + targets[ex], 0);
 
   const span = wakingSpanHours(profile.wake, profile.sleep);
-  const windowCount = profile.windowCount || computeWindowCount(span, totalVolume / EXERCISES.length);
-  const windows = splitIntoWindows(targets, windowCount, profile.wake, profile.sleep);
+  const windowCount = profile.windowTimes?.length
+    || profile.windowCount
+    || computeWindowCount(span, totalVolume / EXERCISES.length);
+  const windows = splitIntoWindows(targets, windowCount, profile.wake, profile.sleep, profile.windowTimes);
 
   const dayOfWeek = new Date(date).getDay();
   const model = dayOfWeek === 2 || dayOfWeek === 5 ? 'ladder' : 'percent';

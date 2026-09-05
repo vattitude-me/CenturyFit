@@ -141,14 +141,19 @@ function minutesToTime(mins: number): string {
   return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
 
-/** Splits daily per-exercise targets across windows, avoiding the first 30min
- * after waking and the last 60min before sleep, never mixing more than 2
- * exercises per window. */
+/** Splits daily per-exercise targets across windows, never mixing more than 2
+ * exercises per window.
+ *
+ * `times` are the window times the user picked during onboarding and are used
+ * verbatim. Without them, times are derived by spacing `windowCount` windows
+ * evenly across the waking span, avoiding the first 30min after waking and the
+ * last 60min before sleep. */
 export function splitIntoWindows(
   dailyTargets: Record<Exercise, number>,
   windowCount: number,
   wake: string,
-  sleep: string
+  sleep: string,
+  times?: string[]
 ): Window[] {
   const wakeMin = timeToMinutes(wake);
   let sleepMin = timeToMinutes(sleep);
@@ -158,6 +163,12 @@ export function splitIntoWindows(
   const usableEnd = sleepMin - 60;
   const span = Math.max(usableEnd - usableStart, windowCount * 10);
   const gap = span / (windowCount + 1);
+
+  // Chosen times win over the computed spacing, but only where one exists -
+  // a shorter list (or none) falls back per-window rather than dropping any.
+  const explicit = times?.length ? [...times].sort((a, b) => a.localeCompare(b)) : null;
+  const timeFor = (i: number) =>
+    explicit?.[i - 1] ?? minutesToTime(Math.round(usableStart + gap * i));
 
   const windows: Window[] = [];
   const remaining: Record<Exercise, number> = { ...dailyTargets };
@@ -184,7 +195,7 @@ export function splitIntoWindows(
 
   for (let i = 1; i <= windowCount; i++) {
     const windowsLeft = windowCount - i + 1;
-    const at = minutesToTime(Math.round(usableStart + gap * i));
+    const at = timeFor(i);
     const items: WindowItem[] = [];
 
     // Cycle exercises across windows, at most 2 per window.

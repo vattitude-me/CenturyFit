@@ -24,6 +24,11 @@ export interface Profile {
   wake: string; // "06:30"
   sleep: string; // "23:00"
   windowCount: number;
+  /** The window times the user actually chose during onboarding, e.g.
+   * ["10:00","13:00","16:00","19:00"]. When set, these are used verbatim
+   * instead of spacing windows evenly across the waking span. Optional so
+   * profiles saved before this existed still load. */
+  windowTimes?: string[];
   reflow: boolean;
   onboardingComplete: boolean;
   baselineComplete: boolean;

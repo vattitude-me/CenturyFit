@@ -70,6 +70,9 @@ export default function PlanPreview() {
       wake: state.windows?.[0] ?? '06:30',
       sleep: '23:00',
       windowCount,
+      // Keep the times the user actually picked on the schedule screen, so the
+      // generated day matches the preview instead of being re-spaced from wake.
+      windowTimes: state.windows,
       reflow: state.reflow ?? true,
       onboardingComplete: true,
       baselineComplete: !state.skipAhead,
