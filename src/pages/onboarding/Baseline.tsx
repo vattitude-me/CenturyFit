@@ -94,7 +94,7 @@ export default function Baseline() {
           return (
             <div
               key={t.key}
-              onClick={() => navigate(`/session?exercise=${t.key}&mode=baseline`)}
+              onClick={() => navigate(`/session?exercise=${t.key}&mode=baseline`, { state: navState })}
               className="flex items-center gap-3.5 p-3.5 rounded-[14px] bg-surface shadow-sm cursor-pointer"
             >
               <IconChip exercise={t.key}>{t.icon}</IconChip>

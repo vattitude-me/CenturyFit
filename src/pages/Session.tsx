@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Mic, PlayCircle, X } from 'lucide-react';
 import Button from '../components/Button';
 import TempoSlider from '../components/TempoSlider';
@@ -45,6 +45,7 @@ function parseQueue(params: URLSearchParams): WindowItem[] {
 
 export default function Session() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
   const isBaseline = params.get('mode') === 'baseline';
   const isAdhoc = params.get('adhoc') === '1';
@@ -118,7 +119,7 @@ export default function Session() {
     const today = localDate();
     if (isBaseline) {
       saveBaselineLog({ id: exercise, exercise, maxReps: reps, testedAt: Date.now() });
-      navigate('/onboarding/baseline', { replace: true });
+      navigate('/onboarding/baseline', { replace: true, state: location.state });
       return;
     }
     saveSetLog({
